@@ -1,0 +1,16 @@
+services:
+  allincode:
+    build:
+      context: .
+      dockerfile: addon/Dockerfile
+    image: allincode/portal-addon:local
+    container_name: allincode-portal-addon
+    restart: unless-stopped
+    ports:
+      - "${ALLINCODE_PORT:-3000}:80"
+    environment:
+      SUB2API_BASE_URL: "${SUB2API_BASE_URL:-http://host.docker.internal:8080}"
+      CLIENT_MAX_BODY_SIZE: "${CLIENT_MAX_BODY_SIZE:-50m}"
+      NGINX_RESOLVER: "${NGINX_RESOLVER:-127.0.0.11}"
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
