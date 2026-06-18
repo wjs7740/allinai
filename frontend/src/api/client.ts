@@ -10,6 +10,74 @@ import { getLocale } from '@/i18n'
 // ==================== Axios Instance Configuration ====================
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || '/api/v1'
+const APP_BASE_URL = import.meta.env.BASE_URL || '/'
+const KNOWN_APP_BASE_PATHS = ['/allcancode']
+
+const PUBLIC_AUTH_PATHS = [
+  '/',
+  '/home',
+  '/ranking',
+  '/monitor',
+  '/key-usage',
+  '/setup',
+  '/legal',
+  '/login',
+  '/register',
+  '/email-verify',
+  '/forgot-password',
+  '/reset-password',
+  '/payment/result',
+  '/payment/airwallex',
+  '/auth',
+]
+
+function buildAppPath(path: string): string {
+  const base = runtimeAppBasePath()
+  return base ? `${base}${path}` : path
+}
+
+function normalizeBasePath(base: string): string {
+  if (!base || base === '/') return ''
+  return base.startsWith('/') ? base.replace(/\/$/, '') : `/${base.replace(/\/$/, '')}`
+}
+
+function runtimeAppBasePath(): string {
+  const pathname = window.location.pathname || '/'
+  const candidates = [
+    normalizeBasePath(APP_BASE_URL),
+    ...KNOWN_APP_BASE_PATHS,
+  ].filter(Boolean)
+
+  for (const base of candidates) {
+    if (pathname === base || pathname.startsWith(`${base}/`)) {
+      return base
+    }
+  }
+
+  return normalizeBasePath(APP_BASE_URL)
+}
+
+function currentAppPath(): string {
+  const pathname = window.location.pathname || '/'
+  const base = runtimeAppBasePath()
+  if (!base) return pathname
+
+  if (pathname === base || pathname === `${base}/`) {
+    return '/'
+  }
+  if (pathname.startsWith(`${base}/`)) {
+    return `/${pathname.slice(base.length + 1)}`
+  }
+  return pathname
+}
+
+function isPublicAuthPath(path: string): boolean {
+  return PUBLIC_AUTH_PATHS.some((publicPath) => path === publicPath || path.startsWith(`${publicPath}/`))
+}
+
+function shouldRedirectToLogin(): boolean {
+  return !isPublicAuthPath(currentAppPath())
+}
 
 export const apiClient: AxiosInstance = axios.create({
   baseURL: API_BASE_URL,
@@ -241,15 +309,17 @@ apiClient.interceptors.response.use(
             onTokenRefreshed('')
             isRefreshing = false
 
-            // Clear tokens and redirect to login
+            // Clear tokens and redirect to login only when the user is already
+            // on a protected app page. Public pages should stay public even if
+            // an old persisted session can no longer be refreshed.
             localStorage.removeItem('auth_token')
             localStorage.removeItem('refresh_token')
             localStorage.removeItem('auth_user')
             localStorage.removeItem('token_expires_at')
             sessionStorage.setItem('auth_expired', '1')
 
-            if (!window.location.pathname.includes('/login')) {
-              window.location.href = '/login'
+            if (shouldRedirectToLogin()) {
+              window.location.href = buildAppPath('/login')
             }
 
             return Promise.reject({
@@ -260,7 +330,9 @@ apiClient.interceptors.response.use(
           }
         }
 
-        // No refresh token or is auth endpoint - clear auth and redirect
+        // No refresh token or is auth endpoint - clear auth when this was an
+        // authenticated request. Anonymous public-page probes may also receive
+        // 401 and should be handled by their callers without forcing navigation.
         const hasToken = !!localStorage.getItem('auth_token')
         const headers = error.config?.headers as Record<string, unknown> | undefined
         const authHeader = headers?.Authorization ?? headers?.authorization
@@ -271,16 +343,17 @@ apiClient.interceptors.response.use(
               ? authHeader.length > 0
               : !!authHeader
 
-        localStorage.removeItem('auth_token')
-        localStorage.removeItem('refresh_token')
-        localStorage.removeItem('auth_user')
-        localStorage.removeItem('token_expires_at')
-        if ((hasToken || sentAuth) && !isAuthEndpoint) {
+        const wasAuthenticatedRequest = (hasToken || sentAuth) && !isAuthEndpoint
+
+        if (wasAuthenticatedRequest) {
+          localStorage.removeItem('auth_token')
+          localStorage.removeItem('refresh_token')
+          localStorage.removeItem('auth_user')
+          localStorage.removeItem('token_expires_at')
           sessionStorage.setItem('auth_expired', '1')
-        }
-        // Only redirect if not already on login page
-        if (!window.location.pathname.includes('/login')) {
-          window.location.href = '/login'
+          if (shouldRedirectToLogin()) {
+            window.location.href = buildAppPath('/login')
+          }
         }
       }
 

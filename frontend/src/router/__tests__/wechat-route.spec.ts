@@ -44,6 +44,26 @@ vi.mock('@/composables/useRoutePrefetch', () => ({
 }))
 
 describe('router WeChat OAuth route', () => {
+  it('registers public home, ranking, and monitor routes with trailing-slash aliases', async () => {
+    const { default: router } = await import('@/router')
+    const homeRoute = router.getRoutes().find((record) => record.name === 'Home')
+    const rankingRoute = router.getRoutes().find((record) => record.name === 'Ranking')
+    const monitorRoute = router.getRoutes().find((record) => record.name === 'PublicMonitor')
+    const notFoundRoute = router.getRoutes().find((record) => record.name === 'NotFound')
+
+    expect(homeRoute?.meta.requiresAuth).toBe(false)
+    expect(homeRoute?.aliasOf || homeRoute).toBeTruthy()
+    expect(router.resolve('/home/').matched.some((record) => record.name === 'Home')).toBe(true)
+
+    expect(rankingRoute?.meta.requiresAuth).toBe(false)
+    expect(router.resolve('/ranking/').matched.some((record) => record.name === 'Ranking')).toBe(true)
+
+    expect(monitorRoute?.meta.requiresAuth).toBe(false)
+    expect(router.resolve('/monitor/').matched.some((record) => record.name === 'PublicMonitor')).toBe(true)
+
+    expect(notFoundRoute?.meta.requiresAuth).toBe(false)
+  })
+
   it('registers the WeChat callback route as a public route', async () => {
     const { default: router } = await import('@/router')
     const route = router.getRoutes().find((record) => record.name === 'WeChatOAuthCallback')

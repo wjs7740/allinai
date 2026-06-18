@@ -1,0 +1,17 @@
+services:
+  allincode:
+    networks:
+      - default
+      - sub2api-network
+
+  ranking-api:
+    environment:
+      POSTGRES_HOST: sub2api-postgres
+    networks:
+      - default
+      - sub2api-network
+
+networks:
+  sub2api-network:
+    external: true
+    name: sub2api-deploy_sub2api-network

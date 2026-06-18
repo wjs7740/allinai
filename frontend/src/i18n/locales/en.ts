@@ -374,6 +374,10 @@ export default {
 
   // Navigation
   nav: {
+    home: 'Home',
+    ranking: 'Ranking',
+    monitor: 'Monitor',
+    keyUsage: 'Lottery',
     dashboard: 'Dashboard',
     announcements: 'Announcements',
     apiKeys: 'API Keys',

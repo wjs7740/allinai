@@ -33,10 +33,21 @@ const routes: RouteRecordRaw[] = [
   {
     path: '/home',
     name: 'Home',
+    alias: '/home/',
     component: () => import('@/views/HomeView.vue'),
     meta: {
       requiresAuth: false,
       title: 'Home'
+    }
+  },
+  {
+    path: '/ranking',
+    name: 'Ranking',
+    alias: '/ranking/',
+    component: () => import('@/views/RankingView.vue'),
+    meta: {
+      requiresAuth: false,
+      title: 'Usage Ranking'
     }
   },
   {
@@ -163,7 +174,7 @@ const routes: RouteRecordRaw[] = [
     component: () => import('@/views/KeyUsageView.vue'),
     meta: {
       requiresAuth: false,
-      title: 'Key Usage',
+      title: 'Lottery',
     }
   },
   {
@@ -456,12 +467,12 @@ const routes: RouteRecordRaw[] = [
   },
   {
     path: '/monitor',
-    name: 'ChannelStatus',
-    component: () => import('@/views/user/ChannelStatusView.vue'),
+    name: 'PublicMonitor',
+    alias: '/monitor/',
+    component: () => import('@/views/PublicMonitorView.vue'),
     meta: {
-      requiresAuth: true,
-      requiresAdmin: false,
-      title: 'Channel Status',
+      requiresAuth: false,
+      title: 'Model Health',
       titleKey: 'nav.channelStatus'
     }
   },
@@ -660,6 +671,7 @@ const routes: RouteRecordRaw[] = [
     name: 'NotFound',
     component: () => import('@/views/NotFoundView.vue'),
     meta: {
+      requiresAuth: false,
       title: '404 Not Found'
     }
   }
@@ -690,7 +702,7 @@ let authInitialized = false
 const navigationLoading = useNavigationLoadingState()
 // 延迟初始化预加载，传入 router 实例
 let routePrefetch: ReturnType<typeof useRoutePrefetch> | null = null
-const BACKEND_MODE_ALLOWED_PATHS = ['/login', '/key-usage', '/setup', '/payment/result', '/payment/airwallex', '/legal']
+const BACKEND_MODE_ALLOWED_PATHS = ['/login', '/key-usage', '/setup', '/payment/result', '/payment/airwallex', '/legal', '/home', '/ranking', '/monitor']
 const BACKEND_MODE_CALLBACK_PATHS = [
   '/auth/callback',
   '/auth/linuxdo/callback',

@@ -374,6 +374,10 @@ export default {
 
   // Navigation
   nav: {
+    home: '首页',
+    ranking: '排行榜',
+    monitor: '监控',
+    keyUsage: '抽奖活动',
     dashboard: '仪表盘',
     announcements: '公告',
     apiKeys: 'API 密钥',

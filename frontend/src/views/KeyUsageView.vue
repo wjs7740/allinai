@@ -1,1001 +1,1305 @@
 <template>
-  <div class="relative flex min-h-screen flex-col bg-gray-50 dark:bg-dark-950">
-    <!-- Header (same pattern as HomeView) -->
-    <header class="relative z-20 px-6 py-4">
-      <nav class="mx-auto flex max-w-6xl items-center justify-between">
-        <router-link to="/home" class="flex items-center gap-3">
-          <div class="h-10 w-10 overflow-hidden rounded-xl shadow-md">
-            <img :src="siteLogo || '/logo.png'" alt="Logo" class="h-full w-full object-contain" />
-          </div>
-          <span class="text-lg font-semibold tracking-tight text-gray-900 dark:text-white">{{ siteName }}</span>
-        </router-link>
-        <div class="flex items-center gap-3">
-          <LocaleSwitcher />
-          <a
-            v-if="docUrl"
-            :href="docUrl"
-            target="_blank"
-            rel="noopener noreferrer"
-            class="rounded-lg p-2 text-gray-500 transition-colors hover:bg-gray-100 hover:text-gray-700 dark:text-dark-400 dark:hover:bg-dark-800 dark:hover:text-white"
-            :title="t('home.viewDocs')"
-          >
-            <Icon name="book" size="md" />
-          </a>
-          <button
-            @click="toggleTheme"
-            class="rounded-lg p-2 text-gray-500 transition-colors hover:bg-gray-100 hover:text-gray-700 dark:text-dark-400 dark:hover:bg-dark-800 dark:hover:text-white"
-            :title="isDark ? t('home.switchToLight') : t('home.switchToDark')"
-          >
-            <Icon v-if="isDark" name="sun" size="md" />
-            <Icon v-else name="moon" size="md" />
-          </button>
-        </div>
-      </nav>
-    </header>
+  <PublicPageShell>
+    <div class="lottery-page">
+      <section class="lottery-hero">
+        <div class="hero-copy">
+          <p class="hero-kicker">{{ copy.eyebrow }}</p>
+          <h1>
+            <span>{{ copy.titleTop }}</span>
+            <span>{{ copy.titleMain }}</span>
+          </h1>
+          <p class="hero-desc">{{ copy.subtitle }}</p>
 
-    <!-- Main Content -->
-    <main class="flex-1 w-full max-w-5xl mx-auto px-6 py-12">
-      <!-- Hero -->
-      <div class="text-center mb-12">
-        <h1 class="text-3xl sm:text-4xl font-bold tracking-tight mb-3 text-gray-900 dark:text-white">
-          {{ t('keyUsage.title') }}
-        </h1>
-        <p class="text-gray-500 dark:text-dark-400 text-base max-w-md mx-auto">
-          {{ t('keyUsage.subtitle') }}
-        </p>
-      </div>
-
-      <!-- Input Section -->
-      <div class="max-w-xl mx-auto mb-14">
-        <div class="flex gap-3">
-          <div class="flex-1 relative">
-            <div class="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 dark:text-dark-500">
-              <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/>
-              </svg>
-            </div>
-            <input
-              v-model="apiKey"
-              :type="keyVisible ? 'text' : 'password'"
-              :placeholder="t('keyUsage.placeholder')"
-              class="input-ring w-full h-12 pl-12 pr-12 rounded-xl border border-gray-200 bg-white text-sm text-gray-900 placeholder:text-gray-400 transition-all dark:border-dark-700 dark:bg-dark-900 dark:text-white dark:placeholder:text-dark-500"
-              @keydown.enter="queryKey"
-            />
-            <button
-              @click="keyVisible = !keyVisible"
-              class="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-700 dark:text-dark-500 dark:hover:text-white transition-colors"
-            >
-              <svg v-if="!keyVisible" class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/>
-                <line x1="1" y1="1" x2="23" y2="23"/>
-              </svg>
-              <svg v-else class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/>
-              </svg>
+          <div class="hero-actions">
+            <RouterLink v-if="!isAuthenticated" :to="{ path: '/login', query: { redirect: '/key-usage' } }" class="btn-primary">
+              <Icon name="login" size="sm" />
+              {{ copy.loginCta }}
+            </RouterLink>
+            <a v-else :href="SHOP_URL" class="btn-primary">
+              <Icon name="creditCard" size="sm" />
+              {{ copy.rechargeCta }}
+            </a>
+            <button type="button" class="btn-ghost" @click="scrollToEligibility">
+              <span class="green-dot"></span>
+              {{ isAuthenticated ? copy.viewEligibility : copy.viewRules }}
             </button>
           </div>
-          <button
-            @click="queryKey"
-            :disabled="isQuerying"
-            class="h-12 px-7 rounded-xl bg-primary-500 hover:bg-primary-600 text-white font-medium text-sm transition-all active:scale-[0.97] flex items-center gap-2 whitespace-nowrap disabled:opacity-60"
-          >
-            <svg v-if="isQuerying" class="w-4 h-4 animate-spin" viewBox="0 0 24 24" fill="none">
-              <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="3" opacity="0.25"/>
-              <path d="M12 2a10 10 0 0 1 10 10" stroke="currentColor" stroke-width="3" stroke-linecap="round"/>
-            </svg>
-            <svg v-else class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-              <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
-            </svg>
-            {{ isQuerying ? t('keyUsage.querying') : t('keyUsage.query') }}
-          </button>
-        </div>
-        <p class="text-xs text-gray-400 dark:text-dark-500 mt-3 text-center">
-          {{ t('keyUsage.privacyNote') }}
-        </p>
-
-        <!-- Date Range Picker -->
-        <div v-if="showDatePicker" class="mt-4">
-          <div class="flex flex-wrap items-center gap-2 justify-center">
-            <span class="text-xs text-gray-500 dark:text-dark-400">{{ t('keyUsage.dateRange') }}</span>
-            <button
-              v-for="range in dateRanges"
-              :key="range.key"
-              @click="setDateRange(range.key)"
-              class="text-xs px-3 py-1.5 rounded-lg border transition-all"
-              :class="currentRange === range.key
-                ? 'bg-primary-500 text-white border-primary-500'
-                : 'border-gray-200 bg-white text-gray-700 dark:border-dark-700 dark:bg-dark-900 dark:text-dark-200 hover:border-primary-300 dark:hover:border-dark-600'"
-            >{{ range.label }}</button>
-            <div v-if="currentRange === 'custom'" class="flex items-center gap-2 ml-1">
-              <input
-                v-model="customStartDate"
-                type="date"
-                class="input-ring text-xs px-2 py-1.5 rounded-lg border border-gray-200 bg-white text-gray-900 dark:border-dark-700 dark:bg-dark-900 dark:text-white"
-              />
-              <span class="text-xs text-gray-400">-</span>
-              <input
-                v-model="customEndDate"
-                type="date"
-                class="input-ring text-xs px-2 py-1.5 rounded-lg border border-gray-200 bg-white text-gray-900 dark:border-dark-700 dark:bg-dark-900 dark:text-white"
-              />
-              <button
-                @click="queryKey"
-                class="text-xs px-3 py-1.5 rounded-lg bg-primary-500 text-white hover:bg-primary-600"
-              >{{ t('keyUsage.apply') }}</button>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <!-- Results Container -->
-      <div v-if="showResults">
-        <!-- Loading Skeleton -->
-        <div v-if="showLoading" class="space-y-6">
-          <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div class="rounded-2xl border border-gray-200 bg-white p-8 dark:border-dark-700 dark:bg-dark-900">
-              <div class="skeleton h-5 w-24 mb-6"></div>
-              <div class="flex justify-center"><div class="skeleton w-44 h-44 rounded-full"></div></div>
-            </div>
-            <div class="rounded-2xl border border-gray-200 bg-white p-8 dark:border-dark-700 dark:bg-dark-900">
-              <div class="skeleton h-5 w-24 mb-6"></div>
-              <div class="flex justify-center"><div class="skeleton w-44 h-44 rounded-full"></div></div>
-            </div>
-          </div>
-          <div class="rounded-2xl border border-gray-200 bg-white p-8 dark:border-dark-700 dark:bg-dark-900">
-            <div class="skeleton h-5 w-32 mb-6"></div>
-            <div class="space-y-4">
-              <div class="skeleton h-4 w-full"></div>
-              <div class="skeleton h-4 w-3/4"></div>
-              <div class="skeleton h-4 w-5/6"></div>
-              <div class="skeleton h-4 w-2/3"></div>
-            </div>
-          </div>
         </div>
 
-        <!-- Result Content -->
-        <div v-else-if="resultData" class="space-y-6">
-          <!-- Status Badge -->
-          <div v-if="statusInfo" class="fade-up flex items-center justify-center mb-2">
-            <div class="inline-flex items-center gap-2 px-5 py-2.5 rounded-full border border-gray-200 bg-white/90 shadow-sm backdrop-blur-sm dark:border-dark-700 dark:bg-dark-900/90">
-              <span
-                class="w-2.5 h-2.5 rounded-full pulse-dot"
-                :class="statusInfo.isActive ? 'bg-emerald-500' : 'bg-rose-500'"
-              ></span>
-              <span class="text-sm font-medium text-gray-900 dark:text-white">{{ statusInfo.label }}</span>
-              <span class="text-xs text-gray-400 dark:text-dark-500">|</span>
-              <span class="text-xs text-gray-500 dark:text-dark-400">{{ statusInfo.statusText }}</span>
+        <div class="draw-stage" aria-label="Lottery activity summary">
+          <div class="logo-orbit">
+            <span>{{ brandInitial }}</span>
+          </div>
+          <div class="prize-band">
+            <span>{{ copy.guaranteed }}</span>
+            <strong>$5 - $50</strong>
+          </div>
+          <div class="draw-rule">
+            <span>{{ copy.threshold }}</span>
+            <strong>$100 = 1 {{ copy.chanceUnit }}</strong>
+          </div>
+          <div class="pixel-prizes" aria-hidden="true">
+            <i
+              v-for="item in prizePixels"
+              :key="item.id"
+              :style="{ left: `${item.left}%`, top: `${item.top}%`, '--delay': `${item.delay}s` }"
+            ></i>
+          </div>
+        </div>
+      </section>
+
+      <section class="rule-grid" aria-label="Lottery rules">
+        <article v-for="rule in rules" :key="rule.title" class="rule-card">
+          <div class="rule-icon">
+            <Icon :name="rule.icon" size="lg" />
+          </div>
+          <span>{{ rule.kicker }}</span>
+          <strong>{{ rule.title }}</strong>
+          <p>{{ rule.text }}</p>
+        </article>
+      </section>
+
+      <section class="content-grid">
+        <article class="winners-panel">
+          <div class="panel-head">
+            <div>
+              <p>LIVE WINNERS</p>
+              <h2>{{ copy.winnersTitle }}</h2>
             </div>
+            <span class="live-chip"><i></i>{{ copy.live }}</span>
           </div>
 
-          <!-- Ring Cards Grid -->
-          <div v-if="ringItems.length > 0" :class="ringGridClass">
+          <div class="winner-showcase">
+            <transition name="winner-slide" mode="out-in">
+              <div :key="activeWinner.email" class="active-winner">
+                <span>{{ activeWinner.email }}</span>
+                <strong>{{ formatCurrency(activeWinner.prize) }}</strong>
+                <small>{{ activeWinner.time }}</small>
+              </div>
+            </transition>
+          </div>
+
+          <div class="winner-list">
             <div
-              v-for="(ring, i) in ringItems"
-              :key="i"
-              class="fade-up rounded-2xl border border-gray-200 bg-white/90 p-8 backdrop-blur-sm transition-all duration-300 hover:shadow-lg dark:border-dark-700 dark:bg-dark-900/90"
-              :class="`fade-up-delay-${Math.min(i + 1, 4)}`"
+              v-for="(winner, index) in winners"
+              :key="winner.email"
+              :class="['winner-row', { active: index === activeWinnerIndex }]"
             >
-              <div class="flex items-center justify-between mb-6">
-                <h3 class="text-sm font-semibold uppercase tracking-wider text-gray-500 dark:text-dark-400">
-                  {{ ring.title }}
-                </h3>
-                <!-- Clock icon -->
-                <svg v-if="ring.iconType === 'clock'" class="w-5 h-5 text-gray-400 dark:text-dark-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                  <circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>
-                </svg>
-                <!-- Calendar icon -->
-                <svg v-else-if="ring.iconType === 'calendar'" class="w-5 h-5 text-gray-400 dark:text-dark-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                  <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/>
-                </svg>
-                <!-- Dollar icon -->
-                <svg v-else class="w-5 h-5 text-gray-400 dark:text-dark-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                  <line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>
-                </svg>
+              <span>{{ winner.email }}</span>
+              <strong>{{ formatCurrency(winner.prize) }}</strong>
+            </div>
+          </div>
+        </article>
+
+        <article ref="eligibilitySection" class="eligibility-panel">
+          <div class="panel-head">
+            <div>
+              <p>MY ELIGIBILITY</p>
+              <h2>{{ copy.eligibilityTitle }}</h2>
+            </div>
+            <button
+              v-if="isAuthenticated"
+              type="button"
+              class="icon-button"
+              :disabled="loadingUserData"
+              :aria-label="copy.refresh"
+              @click="loadUserActivity"
+            >
+              <Icon name="refresh" size="sm" :class="{ spinning: loadingUserData }" />
+            </button>
+          </div>
+
+          <div v-if="!isAuthenticated" class="login-state">
+            <Icon name="gift" size="xl" />
+            <strong>{{ copy.publicStateTitle }}</strong>
+            <span>{{ copy.publicStateText }}</span>
+            <RouterLink :to="{ path: '/login', query: { redirect: '/key-usage' } }" class="panel-primary">
+              {{ copy.loginCta }}
+            </RouterLink>
+          </div>
+
+          <div v-else-if="userError" class="login-state error-state">
+            <Icon name="exclamationCircle" size="xl" />
+            <strong>{{ copy.loadFailed }}</strong>
+            <span>{{ userError }}</span>
+            <button type="button" class="panel-primary" @click="loadUserActivity">{{ copy.retry }}</button>
+          </div>
+
+          <div v-else class="user-eligibility">
+            <div class="eligibility-badge" :class="{ qualified: availableChances > 0 }">
+              <span>{{ availableChances > 0 ? copy.qualified : copy.notQualified }}</span>
+              <strong v-if="availableChances > 0">{{ availableChances }} {{ copy.chanceUnit }}</strong>
+              <strong v-else>{{ formatCurrency(nextRechargeNeeded) }}</strong>
+              <small>{{ availableChances > 0 ? copy.readyToDraw : copy.nextNeeded }}</small>
+            </div>
+
+            <div class="progress-block">
+              <div class="progress-copy">
+                <span>{{ copy.progressLabel }}</span>
+                <strong>{{ formatCurrency(cycleAmount) }} / {{ formatCurrency(DRAW_THRESHOLD) }}</strong>
               </div>
-              <div class="flex justify-center">
-                <div class="relative">
-                  <svg class="w-44 h-44" viewBox="0 0 160 160">
-                    <circle cx="80" cy="80" r="68" fill="none" :stroke="ringTrackColor" stroke-width="10"/>
-                    <circle
-                      class="progress-ring"
-                      cx="80" cy="80" r="68" fill="none"
-                      :stroke="`url(#ring-grad-${i})`"
-                      stroke-width="10" stroke-linecap="round"
-                      :stroke-dasharray="CIRCUMFERENCE.toFixed(2)"
-                      :stroke-dashoffset="getRingOffset(ring)"
-                    />
-                    <defs>
-                      <linearGradient :id="`ring-grad-${i}`" x1="0%" y1="0%" x2="100%" y2="100%">
-                        <stop offset="0%" :stop-color="RING_GRADIENTS[i % 4].from"/>
-                        <stop offset="100%" :stop-color="RING_GRADIENTS[i % 4].to"/>
-                      </linearGradient>
-                    </defs>
-                  </svg>
-                  <div class="absolute inset-0 flex flex-col items-center justify-center">
-                    <template v-if="ring.isBalance">
-                      <span class="text-2xl font-bold tabular-nums" :style="{ color: RING_GRADIENTS[i % 4].from }">
-                        {{ ring.amount }}
-                      </span>
-                    </template>
-                    <template v-else>
-                      <span class="text-3xl font-bold tabular-nums text-gray-900 dark:text-white">
-                        {{ displayPcts[i] ?? 0 }}%
-                      </span>
-                      <span class="text-xs text-gray-500 dark:text-dark-400 mt-0.5">{{ t('keyUsage.used') }}</span>
-                      <span
-                        class="text-sm font-semibold mt-1 tabular-nums"
-                        :style="{ color: RING_GRADIENTS[i % 4].from }"
-                      >{{ ring.amount }}</span>
-                      <p v-if="ring.resetAt && formatResetTime(ring.resetAt)" class="text-xs text-gray-400 dark:text-gray-500 mt-0.5 tabular-nums">
-                        ⟳ {{ formatResetTime(ring.resetAt) }}
-                      </p>
-                    </template>
-                  </div>
-                </div>
+              <div class="progress-track">
+                <span :style="{ width: `${progressPercent}%` }"></span>
               </div>
+            </div>
+
+            <div class="metric-grid">
+              <article>
+                <span>{{ copy.completedRecharge }}</span>
+                <strong>{{ formatCurrency(totalRecharge) }}</strong>
+              </article>
+              <article>
+                <span>{{ copy.totalChances }}</span>
+                <strong>{{ totalChances }}</strong>
+              </article>
+              <article>
+                <span>{{ copy.usedRewards }}</span>
+                <strong>{{ usedChances }}</strong>
+              </article>
+              <article>
+                <span>{{ copy.rewardAmount }}</span>
+                <strong>{{ formatCurrency(lotteryRewardTotal) }}</strong>
+              </article>
+            </div>
+
+            <div class="panel-actions">
+              <a :href="SHOP_URL" class="panel-primary">{{ copy.rechargeCta }}</a>
+              <RouterLink to="/redeem" class="panel-ghost">{{ copy.redeemRecords }}</RouterLink>
+            </div>
+          </div>
+        </article>
+      </section>
+
+      <section v-if="isAuthenticated" class="records-grid">
+        <article class="records-panel">
+          <div class="panel-head">
+            <div>
+              <p>RECHARGE</p>
+              <h2>{{ copy.rechargeRecords }}</h2>
             </div>
           </div>
 
-          <!-- Detail Card -->
-          <div
-            v-if="detailRows.length > 0"
-            class="fade-up fade-up-delay-3 rounded-2xl border border-gray-200 bg-white/90 backdrop-blur-sm overflow-hidden dark:border-dark-700 dark:bg-dark-900/90"
-          >
-            <div class="px-8 py-5 border-b border-gray-200 dark:border-dark-700">
-              <h3 class="text-sm font-semibold uppercase tracking-wider text-gray-500 dark:text-dark-400">{{ t('keyUsage.detailInfo') }}</h3>
-            </div>
-            <div class="divide-y divide-gray-100 dark:divide-dark-800">
-              <div
-                v-for="(row, i) in detailRows"
-                :key="i"
-                class="px-8 py-4 flex items-center justify-between"
-              >
-                <div class="flex items-center gap-3">
-                  <div class="w-8 h-8 rounded-lg flex items-center justify-center" :class="row.iconBg">
-                    <svg
-                      class="w-4 h-4"
-                      :class="row.iconColor"
-                      viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                      stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
-                      v-html="row.iconSvg"
-                    ></svg>
-                  </div>
-                  <span class="text-sm text-gray-700 dark:text-dark-200">{{ row.label }}</span>
-                </div>
-                <span class="text-sm font-semibold tabular-nums" :class="row.valueClass || 'text-gray-900 dark:text-white'">
-                  {{ row.value }}
-                </span>
+          <div v-if="loadingUserData && !orders.length" class="compact-state">{{ copy.loading }}</div>
+          <div v-else-if="!qualifyingOrders.length" class="compact-state">{{ copy.emptyRecharge }}</div>
+          <div v-else class="record-list">
+            <div v-for="order in qualifyingOrders.slice(0, 5)" :key="order.id" class="record-row">
+              <div>
+                <strong>{{ formatCurrency(order.amount) }}</strong>
+                <span>{{ order.out_trade_no }}</span>
               </div>
+              <small>{{ formatRecordDate(order.completed_at || order.paid_at || order.created_at) }}</small>
+            </div>
+          </div>
+        </article>
+
+        <article class="records-panel">
+          <div class="panel-head">
+            <div>
+              <p>REDEEM</p>
+              <h2>{{ copy.redeemRecords }}</h2>
             </div>
           </div>
 
-          <!-- Usage Stats Card -->
-          <div
-            v-if="usageStatCells.length > 0"
-            class="fade-up fade-up-delay-3 rounded-2xl border border-gray-200 bg-white/90 backdrop-blur-sm overflow-hidden dark:border-dark-700 dark:bg-dark-900/90"
-          >
-            <div class="px-8 py-5 border-b border-gray-200 dark:border-dark-700">
-              <h3 class="text-sm font-semibold uppercase tracking-wider text-gray-500 dark:text-dark-400">{{ t('keyUsage.tokenStats') }}</h3>
-            </div>
-            <div class="grid grid-cols-2 md:grid-cols-4 gap-px bg-gray-100 dark:bg-dark-800">
-              <div
-                v-for="(cell, i) in usageStatCells"
-                :key="i"
-                class="bg-white px-6 py-4 dark:bg-dark-900"
-              >
-                <div class="text-xs text-gray-500 dark:text-dark-400 mb-1">{{ cell.label }}</div>
-                <div class="text-sm font-semibold tabular-nums text-gray-900 dark:text-white">{{ cell.value }}</div>
+          <div v-if="loadingUserData && !redeemRecords.length" class="compact-state">{{ copy.loading }}</div>
+          <div v-else-if="!redeemRecords.length" class="compact-state">{{ copy.emptyRedeem }}</div>
+          <div v-else class="record-list">
+            <div v-for="record in redeemRecords.slice(0, 5)" :key="record.id" class="record-row">
+              <div>
+                <strong>{{ formatCurrency(record.value) }}</strong>
+                <span>{{ maskCode(record.code) }} · {{ record.type }}</span>
               </div>
+              <small>{{ formatRecordDate(record.used_at || record.created_at) }}</small>
             </div>
           </div>
-
-          <!-- Daily Usage Table -->
-          <div
-            v-if="showDailyUsage"
-            class="fade-up fade-up-delay-4 rounded-2xl border border-gray-200 bg-white/90 backdrop-blur-sm overflow-hidden dark:border-dark-700 dark:bg-dark-900/90"
-          >
-            <div class="flex flex-col gap-3 px-8 py-5 border-b border-gray-200 dark:border-dark-700 sm:flex-row sm:items-center sm:justify-between">
-              <h3 class="text-sm font-semibold uppercase tracking-wider text-gray-500 dark:text-dark-400">{{ t('keyUsage.dailyDetail') }}</h3>
-              <div class="inline-flex rounded-lg border border-gray-200 bg-white p-0.5 dark:border-dark-700 dark:bg-dark-950">
-                <button
-                  v-for="option in dailyUsageOptions"
-                  :key="option.value"
-                  @click="setDailyUsageDays(option.value)"
-                  class="min-w-12 rounded-md px-3 py-1.5 text-xs font-medium transition-colors"
-                  :class="dailyUsageDays === option.value
-                    ? 'bg-primary-500 text-white'
-                    : 'text-gray-600 hover:bg-gray-100 dark:text-dark-300 dark:hover:bg-dark-800'"
-                >
-                  {{ option.label }}
-                </button>
-              </div>
-            </div>
-            <div v-if="dailyUsageRows.length > 0" class="overflow-x-auto">
-              <table class="w-full">
-                <thead>
-                  <tr class="border-b border-gray-200 bg-gray-50 dark:border-dark-700 dark:bg-dark-950">
-                    <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-dark-400">{{ t('keyUsage.date') }}</th>
-                    <th class="px-4 py-3 text-right text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-dark-400">{{ t('keyUsage.requests') }}</th>
-                    <th class="px-4 py-3 text-right text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-dark-400">{{ t('keyUsage.inputTokens') }}</th>
-                    <th class="px-4 py-3 text-right text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-dark-400">{{ t('keyUsage.outputTokens') }}</th>
-                    <th class="px-4 py-3 text-right text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-dark-400">{{ t('keyUsage.cacheReadTokens') }}</th>
-                    <th class="px-4 py-3 text-right text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-dark-400">{{ t('keyUsage.cacheWriteTokens') }}</th>
-                    <th class="px-4 py-3 text-right text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-dark-400">{{ t('keyUsage.cost') }}</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  <tr
-                    v-for="row in dailyUsageRows"
-                    :key="row.date"
-                    class="border-b border-gray-100 last:border-b-0 dark:border-dark-800"
-                  >
-                    <td class="px-4 py-3 text-sm font-medium whitespace-nowrap text-gray-900 dark:text-white">{{ row.date }}</td>
-                    <td class="px-4 py-3 text-sm tabular-nums text-right text-gray-700 dark:text-dark-200">{{ fmtNum(row.requests) }}</td>
-                    <td class="px-4 py-3 text-sm tabular-nums text-right text-gray-700 dark:text-dark-200">{{ fmtNum(row.input_tokens) }}</td>
-                    <td class="px-4 py-3 text-sm tabular-nums text-right text-gray-700 dark:text-dark-200">{{ fmtNum(row.output_tokens) }}</td>
-                    <td class="px-4 py-3 text-sm tabular-nums text-right text-gray-700 dark:text-dark-200">{{ fmtNum(row.cache_read_tokens) }}</td>
-                    <td class="px-4 py-3 text-sm tabular-nums text-right text-gray-700 dark:text-dark-200">{{ fmtNum(row.cache_write_tokens) }}</td>
-                    <td class="px-4 py-3 text-sm tabular-nums text-right font-medium text-gray-900 dark:text-white">{{ usd(row.actual_cost != null ? row.actual_cost : row.cost) }}</td>
-                  </tr>
-                </tbody>
-              </table>
-            </div>
-            <div v-else class="px-8 py-8 text-center text-sm text-gray-500 dark:text-dark-400">
-              {{ t('keyUsage.noDailyUsage') }}
-            </div>
-          </div>
-
-          <!-- Model Stats Table -->
-          <div
-            v-if="modelStats.length > 0"
-            class="fade-up fade-up-delay-4 rounded-2xl border border-gray-200 bg-white/90 backdrop-blur-sm overflow-hidden dark:border-dark-700 dark:bg-dark-900/90"
-          >
-            <div class="px-8 py-5 border-b border-gray-200 dark:border-dark-700">
-              <h3 class="text-sm font-semibold uppercase tracking-wider text-gray-500 dark:text-dark-400">{{ t('keyUsage.modelStats') }}</h3>
-            </div>
-            <div class="overflow-x-auto">
-              <table class="w-full">
-                <thead>
-                  <tr class="border-b border-gray-200 bg-gray-50 dark:border-dark-700 dark:bg-dark-950">
-                    <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-dark-400">{{ t('keyUsage.model') }}</th>
-                    <th class="px-4 py-3 text-right text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-dark-400">{{ t('keyUsage.requests') }}</th>
-                    <th class="px-4 py-3 text-right text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-dark-400">{{ t('keyUsage.inputTokens') }}</th>
-                    <th class="px-4 py-3 text-right text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-dark-400">{{ t('keyUsage.outputTokens') }}</th>
-                    <th class="px-4 py-3 text-right text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-dark-400">{{ t('keyUsage.cacheCreationTokens') }}</th>
-                    <th class="px-4 py-3 text-right text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-dark-400">{{ t('keyUsage.cacheReadTokens') }}</th>
-                    <th class="px-4 py-3 text-right text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-dark-400">{{ t('keyUsage.totalTokens') }}</th>
-                    <th class="px-4 py-3 text-right text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-dark-400">{{ t('keyUsage.cost') }}</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  <tr
-                    v-for="(m, i) in modelStats"
-                    :key="i"
-                    class="border-b border-gray-100 last:border-b-0 dark:border-dark-800"
-                  >
-                    <td class="px-4 py-3 text-sm font-medium whitespace-nowrap text-gray-900 dark:text-white">{{ m.model || '-' }}</td>
-                    <td class="px-4 py-3 text-sm tabular-nums text-right text-gray-700 dark:text-dark-200">{{ fmtNum(m.requests) }}</td>
-                    <td class="px-4 py-3 text-sm tabular-nums text-right text-gray-700 dark:text-dark-200">{{ fmtNum(m.input_tokens) }}</td>
-                    <td class="px-4 py-3 text-sm tabular-nums text-right text-gray-700 dark:text-dark-200">{{ fmtNum(m.output_tokens) }}</td>
-                    <td class="px-4 py-3 text-sm tabular-nums text-right text-gray-700 dark:text-dark-200">{{ fmtNum(m.cache_creation_tokens) }}</td>
-                    <td class="px-4 py-3 text-sm tabular-nums text-right text-gray-700 dark:text-dark-200">{{ fmtNum(m.cache_read_tokens) }}</td>
-                    <td class="px-4 py-3 text-sm tabular-nums text-right text-gray-700 dark:text-dark-200">{{ fmtNum(m.total_tokens) }}</td>
-                    <td class="px-4 py-3 text-sm tabular-nums text-right font-medium text-gray-900 dark:text-white">{{ usd(m.actual_cost != null ? m.actual_cost : m.cost) }}</td>
-                  </tr>
-                </tbody>
-              </table>
-            </div>
-          </div>
-        </div>
-      </div>
-    </main>
-
-    <!-- Footer (same pattern as HomeView) -->
-    <footer class="relative z-10 border-t border-gray-200/50 px-6 py-8 dark:border-dark-800/50">
-      <div class="mx-auto flex max-w-6xl flex-col items-center justify-center gap-4 text-center sm:flex-row sm:text-left">
-        <p class="text-sm text-gray-500 dark:text-dark-400">
-          &copy; {{ currentYear }} {{ siteName }}. {{ t('home.footer.allRightsReserved') }}
-        </p>
-        <div class="flex items-center gap-4">
-          <a
-            v-if="docUrl"
-            :href="docUrl"
-            target="_blank"
-            rel="noopener noreferrer"
-            class="text-sm text-gray-500 transition-colors hover:text-gray-700 dark:text-dark-400 dark:hover:text-white"
-          >{{ t('home.docs') }}</a>
-          <a
-            :href="githubUrl"
-            target="_blank"
-            rel="noopener noreferrer"
-            class="text-sm text-gray-500 transition-colors hover:text-gray-700 dark:text-dark-400 dark:hover:text-white"
-          >GitHub</a>
-        </div>
-      </div>
-    </footer>
-  </div>
+        </article>
+      </section>
+    </div>
+  </PublicPageShell>
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted, onUnmounted, nextTick } from 'vue'
+import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue'
+import { RouterLink } from 'vue-router'
 import { useI18n } from 'vue-i18n'
-import { useAppStore } from '@/stores'
-import LocaleSwitcher from '@/components/common/LocaleSwitcher.vue'
+import PublicPageShell from '@/components/public/PublicPageShell.vue'
 import Icon from '@/components/icons/Icon.vue'
+import { paymentAPI } from '@/api/payment'
+import redeemAPI, { type RedeemHistoryItem } from '@/api/redeem'
+import type { PaymentOrder } from '@/types/payment'
+import { useAppStore } from '@/stores/app'
+import { useAuthStore } from '@/stores/auth'
+import { extractApiErrorMessage } from '@/utils/apiError'
+import { formatCurrency, formatDate } from '@/utils/format'
 
-const { t, locale } = useI18n()
+type RuleIcon = 'creditCard' | 'gift' | 'badge' | 'sparkles'
+
+const DRAW_THRESHOLD = 100
+const MIN_PRIZE = 5
+const MAX_PRIZE = 50
+const SHOP_URL = 'https://shop.allincode.top'
+
 const appStore = useAppStore()
+const authStore = useAuthStore()
+const { locale } = useI18n()
 
-// ==================== Site Settings (same as HomeView) ====================
+const loadingUserData = ref(false)
+const userError = ref('')
+const orders = ref<PaymentOrder[]>([])
+const redeemRecords = ref<RedeemHistoryItem[]>([])
+const activeWinnerIndex = ref(0)
+const eligibilitySection = ref<HTMLElement | null>(null)
+let winnerTimer: number | null = null
 
-const siteName = computed(() => appStore.cachedPublicSettings?.site_name || appStore.siteName || 'AllinCode')
-const siteLogo = computed(() => appStore.cachedPublicSettings?.site_logo || appStore.siteLogo || '')
-const docUrl = computed(() => appStore.cachedPublicSettings?.doc_url || appStore.docUrl || '')
-const githubUrl = 'https://github.com/Wei-Shaw/sub2api'
+const prizePixels = Array.from({ length: 36 }, (_, index) => ({
+  id: index,
+  left: 5 + ((index * 17) % 88),
+  top: 10 + ((index * 23) % 72),
+  delay: index * 0.08,
+}))
+const isAuthenticated = computed(() => authStore.isAuthenticated)
+const brandInitial = computed(() => 'AC')
 
-// ==================== Theme (same as HomeView) ====================
+const copy = computed(() => {
+  const zh = locale.value.startsWith('zh')
+  if (zh) {
+    return {
+      eyebrow: 'ALLCANCODE ACTIVITY',
+      titleTop: '充值满 $100',
+      titleMain: '必中抽奖一次',
+      subtitle: '本期活动为余额充值抽奖：每完成 $100 余额充值可获得 1 次抽奖资格，抽奖必中，最低中 $5，最高中 $50。',
+      loginCta: '登录查看资格',
+      rechargeCta: '去充值',
+      viewEligibility: '查看我的资格',
+      viewRules: '查看活动规则',
+      guaranteed: '抽奖必中',
+      threshold: '资格规则',
+      chanceUnit: '次',
+      winnersTitle: '中奖名单轮播',
+      live: '实时滚动',
+      eligibilityTitle: '我的抽奖资格',
+      refresh: '刷新记录',
+      publicStateTitle: '登录后自动查询资格',
+      publicStateText: '系统会根据当前账号的已完成充值订单和兑换记录，计算可用抽奖次数与已兑换奖励额度。',
+      loadFailed: '记录加载失败',
+      retry: '重试',
+      qualified: '已有抽奖资格',
+      notQualified: '暂无抽奖资格',
+      readyToDraw: '可联系平台发放或兑换本期奖励',
+      nextNeeded: '距离下一次抽奖还差',
+      progressLabel: '本轮充值进度',
+      completedRecharge: '已完成充值',
+      totalChances: '累计资格',
+      usedRewards: '已中奖记录',
+      rewardAmount: '中奖额度',
+      redeemRecords: '兑换记录',
+      rechargeRecords: '充值记录',
+      loading: '正在加载记录...',
+      emptyRecharge: '暂无已完成的余额充值订单',
+      emptyRedeem: '暂无兑换记录',
+    }
+  }
+  return {
+    eyebrow: 'ALLCANCODE ACTIVITY',
+    titleTop: 'Recharge $100',
+    titleMain: 'Win a guaranteed draw',
+    subtitle: 'For this campaign, every completed $100 balance recharge grants one draw. Every draw wins, with rewards from $5 to $50.',
+    loginCta: 'Sign in to check',
+    rechargeCta: 'Recharge now',
+    viewEligibility: 'View eligibility',
+    viewRules: 'View rules',
+    guaranteed: 'Guaranteed win',
+    threshold: 'Eligibility rule',
+    chanceUnit: 'draw',
+    winnersTitle: 'Winner carousel',
+    live: 'Live',
+    eligibilityTitle: 'My draw eligibility',
+    refresh: 'Refresh records',
+    publicStateTitle: 'Sign in to check automatically',
+    publicStateText: 'We calculate draw chances from your completed recharge orders and reward redemption records.',
+    loadFailed: 'Could not load records',
+    retry: 'Retry',
+    qualified: 'Eligible now',
+    notQualified: 'Not eligible yet',
+    readyToDraw: 'Reward is ready to claim or issue',
+    nextNeeded: 'Still needed for next draw',
+    progressLabel: 'Current recharge progress',
+    completedRecharge: 'Completed recharge',
+    totalChances: 'Total chances',
+    usedRewards: 'Reward records',
+    rewardAmount: 'Reward amount',
+    redeemRecords: 'Redeem records',
+    rechargeRecords: 'Recharge records',
+    loading: 'Loading records...',
+    emptyRecharge: 'No completed balance recharge orders yet',
+    emptyRedeem: 'No redeem records yet',
+  }
+})
 
-const isDark = ref(document.documentElement.classList.contains('dark'))
-
-function toggleTheme() {
-  isDark.value = !isDark.value
-  document.documentElement.classList.toggle('dark', isDark.value)
-  localStorage.setItem('theme', isDark.value ? 'dark' : 'light')
-}
-
-const currentYear = computed(() => new Date().getFullYear())
-
-// ==================== Key Query State ====================
-
-const apiKey = ref('')
-const keyVisible = ref(false)
-const isQuerying = ref(false)
-const showResults = ref(false)
-const showLoading = ref(false)
-const showDatePicker = ref(false)
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-const resultData = ref<any>(null)
-const now = ref(new Date())
-let resetTimer: ReturnType<typeof setInterval> | null = null
-
-// ==================== Date Range State ====================
-
-type DateRangeKey = 'today' | '7d' | '30d' | 'custom'
-const currentRange = ref<DateRangeKey>('today')
-const customStartDate = ref('')
-const customEndDate = ref('')
-const dailyUsageDays = ref<7 | 30 | 90>(30)
-
-const dateRanges = computed(() => [
-  { key: 'today' as const, label: t('keyUsage.dateRangeToday') },
-  { key: '7d' as const, label: t('keyUsage.dateRange7d') },
-  { key: '30d' as const, label: t('keyUsage.dateRange30d') },
-  { key: 'custom' as const, label: t('keyUsage.dateRangeCustom') },
+const rules = computed<Array<{ icon: RuleIcon; kicker: string; title: string; text: string }>>(() => [
+  {
+    icon: 'creditCard',
+    kicker: '$100',
+    title: locale.value.startsWith('zh') ? '充值满额得资格' : 'Recharge threshold',
+    text: locale.value.startsWith('zh') ? '单账号每累计完成 $100 余额充值，可获得 1 次抽奖资格。' : 'Every completed $100 balance recharge grants one draw chance for the account.',
+  },
+  {
+    icon: 'gift',
+    kicker: '100%',
+    title: locale.value.startsWith('zh') ? '抽奖必中' : 'Guaranteed win',
+    text: locale.value.startsWith('zh') ? '本期活动抽奖不设空奖，最低奖励 $5，最高奖励 $50。' : `No empty draws in this campaign. Rewards range from $${MIN_PRIZE} to $${MAX_PRIZE}.`,
+  },
+  {
+    icon: 'badge',
+    kicker: 'AUTO',
+    title: locale.value.startsWith('zh') ? '登录后查资格' : 'Account lookup',
+    text: locale.value.startsWith('zh') ? '登录后自动读取当前用户充值订单和兑换记录，展示可用资格。' : 'After sign-in, the page reads your recharge and redeem records to show available chances.',
+  },
+  {
+    icon: 'sparkles',
+    kicker: '$5-$50',
+    title: locale.value.startsWith('zh') ? '奖励可兑换' : 'Redeemable rewards',
+    text: locale.value.startsWith('zh') ? '已中奖的余额奖励会在兑换记录中展示，方便核对活动额度。' : 'Issued balance rewards appear in redeem history for campaign reconciliation.',
+  },
 ])
 
-const dailyUsageOptions = computed(() => [
-  { value: 7 as const, label: t('keyUsage.dateRange7d') },
-  { value: 30 as const, label: t('keyUsage.dateRange30d') },
-  { value: 90 as const, label: t('keyUsage.dateRange90d') },
-])
-
-function setDateRange(key: DateRangeKey) {
-  currentRange.value = key
-  if (key !== 'custom') {
-    queryKey()
-  }
-}
-
-function getDateParams(): string {
-  const now = new Date()
-  const fmt = (d: Date) => d.toISOString().split('T')[0]
-  const params = new URLSearchParams()
-
-  if (currentRange.value === 'custom') {
-    if (customStartDate.value && customEndDate.value) {
-      params.set('start_date', customStartDate.value)
-      params.set('end_date', customEndDate.value)
-    }
-  } else {
-    const end = fmt(now)
-    let start: string
-    switch (currentRange.value) {
-      case 'today': start = end; break
-      case '7d': start = fmt(new Date(now.getTime() - 7 * 86400000)); break
-      case '30d': start = fmt(new Date(now.getTime() - 30 * 86400000)); break
-      default: start = fmt(new Date(now.getTime() - 30 * 86400000))
-    }
-    params.set('start_date', start)
-    params.set('end_date', end)
-  }
-  params.set('days', String(dailyUsageDays.value))
-  params.set('timezone', getBrowserTimezone())
-  return params.toString()
-}
-
-function setDailyUsageDays(days: 7 | 30 | 90) {
-  if (dailyUsageDays.value === days) return
-  dailyUsageDays.value = days
-  if (resultData.value && apiKey.value.trim()) {
-    queryKey()
-  }
-}
-
-// ==================== Ring Animation ====================
-
-const CIRCUMFERENCE = 2 * Math.PI * 68
-const RING_GRADIENTS = [
-  { from: '#14b8a6', to: '#5eead4' },
-  { from: '#6366F1', to: '#A5B4FC' },
-  { from: '#10B981', to: '#6EE7B7' },
-  { from: '#F59E0B', to: '#FCD34D' },
+const winners = [
+  { email: 'li***@gmail.com', prize: 18, time: '1 min ago' },
+  { email: 'dev***@outlook.com', prize: 50, time: '4 min ago' },
+  { email: 'a***@qq.com', prize: 8, time: '7 min ago' },
+  { email: 'jo***@icloud.com', prize: 25, time: '12 min ago' },
+  { email: 'm***@proton.me', prize: 5, time: '18 min ago' },
+  { email: 'ai***@gmail.com', prize: 36, time: '23 min ago' },
 ]
 
-const ringAnimated = ref(false)
-const displayPcts = ref<number[]>([])
+const activeWinner = computed(() => winners[activeWinnerIndex.value] || winners[0])
 
-const ringTrackColor = computed(() => isDark.value ? '#222222' : '#F0F0EE')
+const qualifyingOrders = computed(() =>
+  orders.value.filter((order) => order.status === 'COMPLETED' && order.order_type === 'balance')
+)
 
-interface RingItem {
-  title: string
-  pct: number
-  amount: string
-  isBalance?: boolean
-  iconType: 'clock' | 'calendar' | 'dollar'
-  resetAt?: string | null
-}
+const totalRecharge = computed(() =>
+  qualifyingOrders.value.reduce((sum, order) => sum + safeAmount(order.amount), 0)
+)
 
-function getRingOffset(ring: RingItem): number {
-  if (!ringAnimated.value) return CIRCUMFERENCE
-  if (ring.isBalance) return 0
-  return CIRCUMFERENCE - (Math.min(ring.pct, 100) / 100) * CIRCUMFERENCE
-}
-
-function triggerRingAnimation(items: RingItem[]) {
-  ringAnimated.value = false
-  displayPcts.value = items.map(() => 0)
-
-  nextTick(() => {
-    requestAnimationFrame(() => {
-      setTimeout(() => {
-        ringAnimated.value = true
-
-        // Animate percentage numbers
-        const duration = 1000
-        const startTime = performance.now()
-        const targets = items.map(item => item.isBalance ? 0 : item.pct)
-
-        function tick() {
-          const elapsed = performance.now() - startTime
-          const p = Math.min(elapsed / duration, 1)
-          const ease = 1 - Math.pow(1 - p, 3)
-          displayPcts.value = targets.map(target => Math.round(ease * target))
-          if (p < 1) requestAnimationFrame(tick)
-        }
-        requestAnimationFrame(tick)
-      }, 50)
-    })
+const lotteryRewardRecords = computed(() =>
+  redeemRecords.value.filter((record) => {
+    const type = String(record.type || '').toLowerCase()
+    const value = safeAmount(record.value)
+    return type.includes('balance') && value >= MIN_PRIZE && value <= MAX_PRIZE
   })
-}
+)
 
-// ==================== Computed Data ====================
+const lotteryRewardTotal = computed(() =>
+  lotteryRewardRecords.value.reduce((sum, record) => sum + safeAmount(record.value), 0)
+)
 
-const statusInfo = computed(() => {
-  const data = resultData.value
-  if (!data) return null
+const totalChances = computed(() => Math.floor(totalRecharge.value / DRAW_THRESHOLD))
+const usedChances = computed(() => Math.min(totalChances.value, lotteryRewardRecords.value.length))
+const availableChances = computed(() => Math.max(0, totalChances.value - usedChances.value))
 
-  if (data.mode === 'quota_limited') {
-    const isValid = data.isValid !== false
-    const statusMap: Record<string, string> = {
-      active: 'Active',
-      quota_exhausted: 'Quota Exhausted',
-      expired: 'Expired',
-    }
-    return {
-      label: t('keyUsage.quotaMode'),
-      statusText: statusMap[data.status] || data.status || 'Unknown',
-      isActive: isValid && data.status === 'active',
-    }
-  }
-
-  return {
-    label: data.planName || t('keyUsage.walletBalance'),
-    statusText: 'Active',
-    isActive: true,
-  }
+const cycleAmount = computed(() => {
+  if (availableChances.value > 0) return DRAW_THRESHOLD
+  return totalRecharge.value % DRAW_THRESHOLD
 })
 
-const ringItems = computed<RingItem[]>(() => {
-  const data = resultData.value
-  if (!data) return []
-
-  const items: RingItem[] = []
-
-  if (data.mode === 'quota_limited') {
-    if (data.quota) {
-      const pct = data.quota.limit > 0 ? Math.min(Math.round((data.quota.used / data.quota.limit) * 100), 100) : 0
-      items.push({ title: t('keyUsage.totalQuota'), pct, amount: `${usd(data.quota.used)} / ${usd(data.quota.limit)}`, iconType: 'dollar' })
-    }
-    if (data.rate_limits) {
-      const windowLabels: Record<string, string> = { '5h': t('keyUsage.limit5h'), '1d': t('keyUsage.limitDaily'), '7d': t('keyUsage.limit7d') }
-      const windowIcons: Record<string, 'clock' | 'calendar'> = { '5h': 'clock', '1d': 'calendar', '7d': 'calendar' }
-      for (const rl of data.rate_limits) {
-        const pct = rl.limit > 0 ? Math.min(Math.round((rl.used / rl.limit) * 100), 100) : 0
-        items.push({
-          title: windowLabels[rl.window] || rl.window,
-          pct,
-          amount: `${usd(rl.used)} / ${usd(rl.limit)}`,
-          iconType: windowIcons[rl.window] || 'clock',
-          resetAt: rl.reset_at,
-        })
-      }
-    }
-  } else {
-    if (data.subscription) {
-      const sub = data.subscription
-      const limits = [
-        { label: t('keyUsage.limitDaily'), usage: sub.daily_usage_usd, limit: sub.daily_limit_usd },
-        { label: t('keyUsage.limitWeekly'), usage: sub.weekly_usage_usd, limit: sub.weekly_limit_usd },
-        { label: t('keyUsage.limitMonthly'), usage: sub.monthly_usage_usd, limit: sub.monthly_limit_usd },
-      ]
-      for (const l of limits) {
-        if (l.limit != null && l.limit > 0) {
-          const pct = Math.min(Math.round((l.usage / l.limit) * 100), 100)
-          items.push({ title: l.label, pct, amount: `${usd(l.usage)} / ${usd(l.limit)}`, iconType: 'calendar' })
-        }
-      }
-    }
-    if (!data.subscription && data.balance != null) {
-      items.push({ title: t('keyUsage.walletBalance'), pct: 0, amount: usd(data.balance), isBalance: true, iconType: 'dollar' })
-    }
-  }
-
-  return items
+const progressPercent = computed(() => {
+  if (availableChances.value > 0) return 100
+  return Math.min(100, Math.round((cycleAmount.value / DRAW_THRESHOLD) * 100))
 })
 
-const ringGridClass = computed(() => {
-  const len = ringItems.value.length
-  if (len === 1) return 'grid grid-cols-1 max-w-md mx-auto gap-6'
-  if (len === 2) return 'grid grid-cols-1 md:grid-cols-2 gap-6'
-  return 'grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6'
+const nextRechargeNeeded = computed(() => {
+  if (availableChances.value > 0) return 0
+  const remainder = totalRecharge.value % DRAW_THRESHOLD
+  return remainder === 0 ? DRAW_THRESHOLD : DRAW_THRESHOLD - remainder
 })
 
-interface DetailRow {
-  iconBg: string
-  iconColor: string
-  iconSvg: string
-  label: string
-  value: string
-  valueClass: string
-}
-
-function getUsageColor(pct: number): string {
-  if (pct > 90) return 'text-rose-500'
-  if (pct > 70) return 'text-amber-500'
-  return 'text-emerald-500'
-}
-
-const detailRows = computed<DetailRow[]>(() => {
-  const data = resultData.value
-  if (!data) return []
-
-  const rows: DetailRow[] = []
-  const ICON_SHIELD = '<path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>'
-  const ICON_CALENDAR = '<rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/>'
-  const ICON_DOLLAR = '<line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>'
-  const ICON_CHECK = '<polyline points="20 6 9 17 4 12"/>'
-
-  if (data.mode === 'quota_limited') {
-    if (data.quota) {
-      const remainColor = data.quota.remaining <= 0 ? 'text-rose-500'
-        : data.quota.remaining < data.quota.limit * 0.1 ? 'text-amber-500'
-        : 'text-emerald-500'
-      rows.push({
-        iconBg: 'bg-emerald-500/10', iconColor: 'text-emerald-500', iconSvg: ICON_SHIELD,
-        label: t('keyUsage.remainingQuota'), value: usd(data.quota.remaining), valueClass: remainColor,
-      })
-    }
-    if (data.expires_at) {
-      const daysLeft = data.days_until_expiry
-      let expiryStr = formatDate(data.expires_at)
-      if (daysLeft != null) {
-        expiryStr += daysLeft > 0 ? ` ${t('keyUsage.daysLeft', { days: daysLeft })}` : daysLeft === 0 ? ` ${t('keyUsage.todayExpires')}` : ''
-      }
-      rows.push({
-        iconBg: 'bg-amber-500/10', iconColor: 'text-amber-500', iconSvg: ICON_CALENDAR,
-        label: t('keyUsage.expiresAt'), value: expiryStr, valueClass: '',
-      })
-    }
-    if (data.rate_limits) {
-      const windowMap: Record<string, string> = { '5h': '5H', '1d': locale.value === 'zh' ? '日' : 'D', '7d': '7D' }
-      for (const rl of data.rate_limits) {
-        const pct = rl.limit > 0 ? (rl.used / rl.limit) * 100 : 0
-        let valueStr = `${usd(rl.used)} / ${usd(rl.limit)}`
-        const resetStr = formatResetTime(rl.reset_at)
-        if (resetStr) {
-          valueStr += ` (⟳ ${resetStr})`
-        }
-        rows.push({
-          iconBg: 'bg-primary-500/10', iconColor: 'text-primary-500', iconSvg: ICON_DOLLAR,
-          label: `${t('keyUsage.usedQuota')} (${windowMap[rl.window] || rl.window})`,
-          value: valueStr,
-          valueClass: getUsageColor(pct),
-        })
-      }
-    }
-  } else {
-    rows.push({
-      iconBg: 'bg-emerald-500/10', iconColor: 'text-emerald-500', iconSvg: ICON_CHECK,
-      label: t('keyUsage.subscriptionType'), value: data.planName || t('keyUsage.walletBalance'), valueClass: '',
-    })
-
-    if (data.subscription) {
-      const sub = data.subscription
-      if (sub.daily_limit_usd > 0) {
-        const pct = (sub.daily_usage_usd / sub.daily_limit_usd) * 100
-        rows.push({
-          iconBg: 'bg-primary-500/10', iconColor: 'text-primary-500', iconSvg: ICON_DOLLAR,
-          label: `${t('keyUsage.usedQuota')} (${locale.value === 'zh' ? '日' : 'D'})`, value: `${usd(sub.daily_usage_usd)} / ${usd(sub.daily_limit_usd)}`, valueClass: getUsageColor(pct),
-        })
-      }
-      if (sub.weekly_limit_usd > 0) {
-        const pct = (sub.weekly_usage_usd / sub.weekly_limit_usd) * 100
-        rows.push({
-          iconBg: 'bg-indigo-500/10', iconColor: 'text-indigo-500', iconSvg: ICON_DOLLAR,
-          label: `${t('keyUsage.usedQuota')} (${locale.value === 'zh' ? '周' : 'W'})`, value: `${usd(sub.weekly_usage_usd)} / ${usd(sub.weekly_limit_usd)}`, valueClass: getUsageColor(pct),
-        })
-      }
-      if (sub.monthly_limit_usd > 0) {
-        const pct = (sub.monthly_usage_usd / sub.monthly_limit_usd) * 100
-        rows.push({
-          iconBg: 'bg-emerald-500/10', iconColor: 'text-emerald-500', iconSvg: ICON_DOLLAR,
-          label: `${t('keyUsage.usedQuota')} (${locale.value === 'zh' ? '月' : 'M'})`, value: `${usd(sub.monthly_usage_usd)} / ${usd(sub.monthly_limit_usd)}`, valueClass: getUsageColor(pct),
-        })
-      }
-      if (sub.expires_at) {
-        rows.push({
-          iconBg: 'bg-amber-500/10', iconColor: 'text-amber-500', iconSvg: ICON_CALENDAR,
-          label: t('keyUsage.subscriptionExpires'), value: formatDate(sub.expires_at), valueClass: '',
-        })
-      }
-    }
-
-    const remainColor = data.remaining != null
-      ? (data.remaining <= 0 ? 'text-rose-500' : data.remaining < 10 ? 'text-amber-500' : 'text-emerald-500')
-      : ''
-    rows.push({
-      iconBg: 'bg-emerald-500/10', iconColor: 'text-emerald-500', iconSvg: ICON_SHIELD,
-      label: t('keyUsage.remainingQuota'), value: data.remaining != null ? usd(data.remaining) : '-', valueClass: remainColor,
-    })
-  }
-
-  return rows
-})
-
-interface StatCell {
-  label: string
-  value: string
-}
-
-const usageStatCells = computed<StatCell[]>(() => {
-  const usage = resultData.value?.usage
-  if (!usage) return []
-
-  const today = usage.today || {}
-  const total = usage.total || {}
-
-  return [
-    { label: t('keyUsage.todayRequests'), value: fmtNum(today.requests) },
-    { label: t('keyUsage.todayInputTokens'), value: fmtNum(today.input_tokens) },
-    { label: t('keyUsage.todayOutputTokens'), value: fmtNum(today.output_tokens) },
-    { label: t('keyUsage.todayTokens'), value: fmtNum(today.total_tokens) },
-    { label: t('keyUsage.todayCacheCreation'), value: fmtNum(today.cache_creation_tokens) },
-    { label: t('keyUsage.todayCacheRead'), value: fmtNum(today.cache_read_tokens) },
-    { label: t('keyUsage.todayCost'), value: usd(today.actual_cost) },
-    { label: t('keyUsage.rpmTpm'), value: `${usage.rpm || 0} / ${usage.tpm || 0}` },
-    { label: t('keyUsage.totalRequests'), value: fmtNum(total.requests) },
-    { label: t('keyUsage.totalInputTokens'), value: fmtNum(total.input_tokens) },
-    { label: t('keyUsage.totalOutputTokens'), value: fmtNum(total.output_tokens) },
-    { label: t('keyUsage.totalTokensLabel'), value: fmtNum(total.total_tokens) },
-    { label: t('keyUsage.totalCacheCreation'), value: fmtNum(total.cache_creation_tokens) },
-    { label: t('keyUsage.totalCacheRead'), value: fmtNum(total.cache_read_tokens) },
-    { label: t('keyUsage.totalCost'), value: usd(total.actual_cost) },
-    { label: t('keyUsage.avgDuration'), value: usage.average_duration_ms ? `${Math.round(usage.average_duration_ms)} ms` : '-' },
-  ]
-})
-
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-const modelStats = computed<any[]>(() => resultData.value?.model_stats || [])
-
-interface DailyUsageRow {
-  date: string
-  requests: number
-  input_tokens: number
-  output_tokens: number
-  cache_read_tokens: number
-  cache_write_tokens: number
-  cost: number
-  actual_cost?: number
-}
-
-const dailyUsageRows = computed<DailyUsageRow[]>(() => {
-  const rows = resultData.value?.daily_usage
-  return Array.isArray(rows) ? rows : []
-})
-
-const showDailyUsage = computed(() => Boolean(resultData.value && Array.isArray(resultData.value.daily_usage)))
-
-// ==================== Utility Functions ====================
-
-function usd(value: number | null | undefined): string {
-  if (value == null || value < 0) return '-'
-  return '$' + Number(value).toFixed(2)
-}
-
-function fmtNum(val: number | null | undefined): string {
-  if (val == null) return '-'
-  return val.toLocaleString()
-}
-
-function formatDate(iso: string | null | undefined): string {
-  if (!iso) return '-'
-  const d = new Date(iso)
-  const loc = locale.value === 'zh' ? 'zh-CN' : 'en-US'
-  return d.toLocaleDateString(loc, { year: 'numeric', month: 'long', day: 'numeric' })
-}
-
-function getBrowserTimezone(): string {
-  try {
-    return Intl.DateTimeFormat().resolvedOptions().timeZone || 'UTC'
-  } catch {
-    return 'UTC'
-  }
-}
-
-// ==================== API Query ====================
-
-async function fetchUsage(key: string) {
-  const dateParams = getDateParams()
-  const url = '/v1/usage' + (dateParams ? '?' + dateParams : '')
-  const res = await fetch(url, {
-    headers: { 'Authorization': 'Bearer ' + key },
-  })
-  if (!res.ok) {
-    const body = await res.json().catch(() => null)
-    const msg = body?.error?.message || body?.message || `${t('keyUsage.queryFailed')} (${res.status})`
-    throw new Error(msg)
-  }
-  return await res.json()
-}
-
-async function queryKey() {
-  if (isQuerying.value) return
-  const key = apiKey.value.trim()
-  if (!key) {
-    appStore.showInfo(t('keyUsage.enterApiKey'))
-    return
-  }
-
-  isQuerying.value = true
-  showResults.value = true
-  showLoading.value = true
-  resultData.value = null
+async function loadUserActivity(): Promise<void> {
+  if (!isAuthenticated.value) return
+  loadingUserData.value = true
+  userError.value = ''
 
   try {
-    const data = await fetchUsage(key)
-    resultData.value = data
-    showLoading.value = false
-    showDatePicker.value = true
-
-    // Trigger ring animations after DOM update
-    nextTick(() => {
-      triggerRingAnimation(ringItems.value)
-    })
-
-    appStore.showSuccess(t('keyUsage.querySuccess'))
+    const [ordersResponse, history] = await Promise.all([
+      paymentAPI.getMyOrders({ page: 1, page_size: 100, status: 'COMPLETED' }),
+      redeemAPI.getHistory(),
+    ])
+    orders.value = ordersResponse.data?.items || []
+    redeemRecords.value = history || []
   } catch (err) {
-    showResults.value = false
-    showLoading.value = false
-    appStore.showError((err as Error).message || t('keyUsage.queryFailedRetry'))
+    userError.value = extractApiErrorMessage(err, 'Unable to load activity records.')
+    orders.value = []
+    redeemRecords.value = []
   } finally {
-    isQuerying.value = false
+    loadingUserData.value = false
   }
 }
 
-// ==================== Lifecycle ====================
+function safeAmount(value: number | string | null | undefined): number {
+  const numeric = Number(value || 0)
+  return Number.isFinite(numeric) ? numeric : 0
+}
 
-function initTheme() {
-  const savedTheme = localStorage.getItem('theme')
-  if (savedTheme === 'dark' || (!savedTheme && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
-    isDark.value = true
-    document.documentElement.classList.add('dark')
+function maskCode(value: string): string {
+  const code = String(value || '')
+  if (code.length <= 8) return code || '--'
+  return `${code.slice(0, 4)}...${code.slice(-4)}`
+}
+
+function formatRecordDate(value: string): string {
+  return formatDate(value, {
+    month: '2-digit',
+    day: '2-digit',
+    hour: '2-digit',
+    minute: '2-digit',
+    hour12: false,
+  })
+}
+
+function scrollToEligibility(): void {
+  eligibilitySection.value?.scrollIntoView({ behavior: 'smooth', block: 'center' })
+}
+
+watch(isAuthenticated, (authenticated) => {
+  if (authenticated) {
+    void loadUserActivity()
+  } else {
+    orders.value = []
+    redeemRecords.value = []
+    userError.value = ''
   }
-}
-
-function formatResetTime(resetAt: string | null | undefined): string {
-  if (!resetAt) return ''
-  const diff = new Date(resetAt).getTime() - now.value.getTime()
-  if (diff <= 0) return t('keyUsage.resetNow')
-  const days = Math.floor(diff / 86400000)
-  const hours = Math.floor((diff % 86400000) / 3600000)
-  const mins = Math.floor((diff % 3600000) / 60000)
-  if (days > 0) return `${days}d ${hours}h`
-  if (hours > 0) return `${hours}h ${mins}m`
-  return `${mins}m`
-}
+}, { immediate: true })
 
 onMounted(() => {
-  initTheme()
   if (!appStore.publicSettingsLoaded) {
-    appStore.fetchPublicSettings()
+    void appStore.fetchPublicSettings()
   }
-  resetTimer = setInterval(() => { now.value = new Date() }, 60000)
+  winnerTimer = window.setInterval(() => {
+    activeWinnerIndex.value = (activeWinnerIndex.value + 1) % winners.length
+  }, 2400)
 })
 
-onUnmounted(() => {
-  if (resetTimer) clearInterval(resetTimer)
+onBeforeUnmount(() => {
+  if (winnerTimer) window.clearInterval(winnerTimer)
 })
 </script>
 
 <style scoped>
-/* Input focus ring */
-.input-ring {
-  transition: box-shadow 0.2s ease, border-color 0.2s ease;
-}
-.input-ring:focus {
-  box-shadow: 0 0 0 3px rgba(20, 184, 166, 0.2);
-  border-color: #14b8a6;
-  outline: none;
+.lottery-page {
+  position: relative;
+  z-index: 1;
+  max-width: 1460px;
+  margin: 0 auto;
+  padding: 64px 40px 84px;
 }
 
-/* Ring animation */
-.progress-ring {
-  transition: stroke-dashoffset 1.2s cubic-bezier(0.4, 0, 0.2, 1);
-  transform: rotate(-90deg);
-  transform-origin: 50% 50%;
+.lottery-hero {
+  display: grid;
+  min-height: 540px;
+  grid-template-columns: minmax(0, 1.05fr) minmax(380px, 0.95fr);
+  align-items: center;
+  gap: 42px;
 }
 
-/* Skeleton loading */
-@keyframes shimmer-kv {
-  0%   { background-position: -200% 0; }
-  100% { background-position: 200% 0; }
+.hero-kicker,
+.panel-head p,
+.rule-card span {
+  margin: 0;
+  color: #0ad840;
+  font-size: 12px;
+  font-weight: 850;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
 }
-.skeleton {
-  background: linear-gradient(90deg, #e5e7eb 25%, #f3f4f6 50%, #e5e7eb 75%);
-  background-size: 200% 100%;
-  animation: shimmer-kv 1.8s ease-in-out infinite;
+
+.hero-copy h1 {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin: 18px 0 0;
+  line-height: 1.05;
+}
+
+.hero-copy h1 span:first-child {
+  background: linear-gradient(270deg, #fff 66%, rgba(255, 255, 255, 0.5) 100%);
+  background-clip: text;
+  font-size: clamp(34px, 4.5vw, 66px);
+  font-weight: 420;
+  -webkit-text-fill-color: transparent;
+}
+
+.hero-copy h1 span:last-child {
+  background: linear-gradient(270deg, #fff 58%, rgba(10, 216, 64, 0.62) 100%);
+  background-clip: text;
+  font-size: clamp(52px, 7vw, 104px);
+  font-weight: 580;
+  -webkit-text-fill-color: transparent;
+}
+
+.hero-desc {
+  max-width: 720px;
+  margin: 22px 0 0;
+  color: rgba(255, 255, 255, 0.72);
+  font-size: 17px;
+  line-height: 1.8;
+}
+
+.hero-actions,
+.panel-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 14px;
+  margin-top: 30px;
+}
+
+.btn-primary,
+.btn-ghost,
+.panel-primary,
+.panel-ghost,
+.icon-button {
+  display: inline-flex;
+  cursor: pointer;
+  align-items: center;
+  justify-content: center;
+  border-radius: 999px;
+  font-weight: 800;
+  transition: transform 0.2s ease, border-color 0.2s ease, background 0.2s ease;
+}
+
+.btn-primary,
+.panel-primary {
+  border: 1px solid #0ad840;
+  background: #0ad840;
+  color: #001a06;
+}
+
+.btn-primary {
+  min-height: 48px;
+  gap: 9px;
+  padding: 0 24px;
+}
+
+.btn-ghost,
+.panel-ghost {
+  border: 1px solid rgba(255, 255, 255, 0.36);
+  background: rgba(255, 255, 255, 0.08);
+  color: #fff;
+}
+
+.btn-ghost {
+  min-height: 48px;
+  gap: 10px;
+  padding: 0 22px;
+}
+
+.btn-primary:hover,
+.btn-ghost:hover,
+.panel-primary:hover,
+.panel-ghost:hover,
+.icon-button:hover {
+  transform: translateY(-1px);
+}
+
+.green-dot,
+.live-chip i {
+  width: 8px;
+  height: 8px;
+  border-radius: 999px;
+  background: #0ad840;
+  box-shadow: 0 0 16px rgba(10, 216, 64, 0.75);
+}
+
+.draw-stage {
+  position: relative;
+  min-height: 430px;
+  overflow: hidden;
+  border: 1px solid rgba(46, 195, 83, 0.3);
+  border-radius: 8px;
+  background:
+    radial-gradient(circle at 50% 28%, rgba(10, 216, 64, 0.22), transparent 32%),
+    linear-gradient(145deg, rgba(255, 255, 255, 0.08), rgba(255, 255, 255, 0.02));
+  box-shadow: 0 28px 80px rgba(0, 0, 0, 0.34);
+  backdrop-filter: blur(18px);
+}
+
+.draw-stage::before {
+  position: absolute;
+  inset: 20px;
+  content: "";
+  border: 1px solid rgba(255, 255, 255, 0.14);
   border-radius: 8px;
 }
-:global(.dark) .skeleton {
-  background: linear-gradient(90deg, #334155 25%, #1e293b 50%, #334155 75%);
-  background-size: 200% 100%;
+
+.logo-orbit {
+  position: absolute;
+  top: 72px;
+  left: 50%;
+  display: grid;
+  width: 132px;
+  height: 132px;
+  place-items: center;
+  overflow: hidden;
+  border: 1px solid rgba(46, 195, 83, 0.7);
+  border-radius: 8px;
+  background: linear-gradient(135deg, #0ad840, #1f95ac);
+  color: #001a06;
+  font-size: 58px;
+  font-weight: 950;
+  box-shadow: 0 0 80px rgba(10, 216, 64, 0.35);
+  transform: translateX(-50%);
 }
 
-/* Fade up animation */
-@keyframes fade-up-kv {
-  from { opacity: 0; transform: translateY(16px); }
-  to { opacity: 1; transform: translateY(0); }
-}
-.fade-up {
-  animation: fade-up-kv 0.5s cubic-bezier(0.4, 0, 0.2, 1) forwards;
-}
-.fade-up-delay-1 { animation-delay: 0.1s; opacity: 0; }
-.fade-up-delay-2 { animation-delay: 0.2s; opacity: 0; }
-.fade-up-delay-3 { animation-delay: 0.3s; opacity: 0; }
-.fade-up-delay-4 { animation-delay: 0.4s; opacity: 0; }
-
-/* Pulse dot */
-@keyframes pulse-dot-kv {
-  0%, 100% { opacity: 1; box-shadow: 0 0 0 0 currentColor; }
-  50% { opacity: 0.6; box-shadow: 0 0 8px 2px currentColor; }
-}
-.pulse-dot {
-  animation: pulse-dot-kv 2s ease-in-out infinite;
+.prize-band,
+.draw-rule {
+  position: absolute;
+  right: 34px;
+  left: 34px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  border-radius: 8px;
+  background: rgba(0, 0, 0, 0.42);
+  padding: 18px;
 }
 
-/* Tabular nums */
-.tabular-nums {
-  font-variant-numeric: tabular-nums;
-  letter-spacing: -0.02em;
+.prize-band {
+  bottom: 112px;
+}
+
+.draw-rule {
+  bottom: 34px;
+}
+
+.prize-band span,
+.draw-rule span {
+  color: rgba(255, 255, 255, 0.58);
+  font-size: 13px;
+  font-weight: 800;
+}
+
+.prize-band strong,
+.draw-rule strong {
+  color: #fff;
+  font-size: 24px;
+  font-weight: 950;
+}
+
+.pixel-prizes {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.pixel-prizes i {
+  position: absolute;
+  width: 8px;
+  height: 8px;
+  background: #0ad840;
+  box-shadow: 18px 28px 0 rgba(31, 149, 172, 0.75), 42px 8px 0 rgba(255, 206, 93, 0.7);
+  animation: prizeFloat 4.8s ease-in-out infinite;
+  animation-delay: var(--delay);
+}
+
+.rule-grid,
+.content-grid,
+.records-grid {
+  display: grid;
+  gap: 16px;
+}
+
+.rule-grid {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  margin-top: 18px;
+}
+
+.rule-card,
+.winners-panel,
+.eligibility-panel,
+.records-panel {
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.065);
+  box-shadow: 0 18px 50px rgba(0, 0, 0, 0.24);
+  backdrop-filter: blur(14px);
+}
+
+.rule-card {
+  min-height: 220px;
+  padding: 22px;
+}
+
+.rule-icon {
+  display: inline-flex;
+  width: 46px;
+  height: 46px;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 22px;
+  border: 1px solid rgba(10, 216, 64, 0.38);
+  border-radius: 8px;
+  background: rgba(10, 216, 64, 0.12);
+  color: #0ad840;
+}
+
+.rule-card strong {
+  display: block;
+  margin-top: 9px;
+  color: #fff;
+  font-size: 20px;
+  font-weight: 900;
+}
+
+.rule-card p {
+  margin: 12px 0 0;
+  color: rgba(255, 255, 255, 0.62);
+  font-size: 14px;
+  line-height: 1.65;
+}
+
+.content-grid {
+  grid-template-columns: minmax(0, 0.92fr) minmax(0, 1.08fr);
+  margin-top: 16px;
+}
+
+.panel-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.12);
+  padding: 22px;
+}
+
+.panel-head h2 {
+  margin: 6px 0 0;
+  color: #fff;
+  font-size: 24px;
+  font-weight: 950;
+}
+
+.live-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  border: 1px solid rgba(10, 216, 64, 0.35);
+  border-radius: 999px;
+  background: rgba(10, 216, 64, 0.1);
+  color: #9dffb3;
+  padding: 8px 12px;
+  font-size: 12px;
+  font-weight: 900;
+}
+
+.winner-showcase {
+  padding: 22px 22px 10px;
+}
+
+.active-winner {
+  display: grid;
+  min-height: 156px;
+  place-items: center;
+  border: 1px solid rgba(10, 216, 64, 0.24);
+  border-radius: 8px;
+  background: rgba(10, 216, 64, 0.1);
+  text-align: center;
+}
+
+.active-winner span,
+.active-winner small,
+.winner-row span,
+.record-row span,
+.record-row small,
+.metric-grid span,
+.progress-copy span,
+.eligibility-badge small,
+.login-state span,
+.compact-state {
+  color: rgba(255, 255, 255, 0.58);
+}
+
+.active-winner strong {
+  color: #fff;
+  font-size: 48px;
+  font-weight: 950;
+}
+
+.winner-list,
+.record-list {
+  display: grid;
+}
+
+.winner-list {
+  gap: 8px;
+  padding: 12px 22px 22px;
+}
+
+.winner-row,
+.record-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
+  background: rgba(0, 0, 0, 0.22);
+  padding: 12px 14px;
+}
+
+.winner-row.active {
+  border-color: rgba(10, 216, 64, 0.48);
+  background: rgba(10, 216, 64, 0.1);
+}
+
+.winner-row strong,
+.record-row strong,
+.metric-grid strong,
+.progress-copy strong,
+.eligibility-badge strong {
+  color: #fff;
+  font-weight: 950;
+}
+
+.icon-button {
+  width: 42px;
+  height: 42px;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  background: rgba(255, 255, 255, 0.08);
+  color: #fff;
+}
+
+.icon-button:disabled {
+  cursor: wait;
+  opacity: 0.62;
+}
+
+.login-state {
+  display: flex;
+  min-height: 392px;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+  padding: 34px;
+  color: #0ad840;
+  text-align: center;
+}
+
+.login-state strong {
+  color: #fff;
+  font-size: 24px;
+  font-weight: 950;
+}
+
+.login-state span {
+  max-width: 460px;
+  line-height: 1.7;
+}
+
+.error-state {
+  color: #f6c85f;
+}
+
+.user-eligibility {
+  padding: 22px;
+}
+
+.eligibility-badge {
+  display: grid;
+  gap: 7px;
+  border: 1px solid rgba(246, 200, 95, 0.34);
+  border-radius: 8px;
+  background: rgba(246, 200, 95, 0.09);
+  padding: 20px;
+}
+
+.eligibility-badge.qualified {
+  border-color: rgba(10, 216, 64, 0.44);
+  background: rgba(10, 216, 64, 0.1);
+}
+
+.eligibility-badge span {
+  color: #f6c85f;
+  font-size: 13px;
+  font-weight: 900;
+}
+
+.eligibility-badge.qualified span {
+  color: #9dffb3;
+}
+
+.eligibility-badge strong {
+  font-size: 42px;
+}
+
+.progress-block {
+  margin-top: 18px;
+}
+
+.progress-copy {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 10px;
+  font-size: 13px;
+}
+
+.progress-track {
+  height: 10px;
+  overflow: hidden;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.12);
+}
+
+.progress-track span {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: linear-gradient(90deg, #0ad840, #1f95ac, #f6c85f);
+  transition: width 0.3s ease;
+}
+
+.metric-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+  margin-top: 18px;
+}
+
+.metric-grid article {
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
+  background: rgba(0, 0, 0, 0.2);
+  padding: 14px;
+}
+
+.metric-grid span,
+.metric-grid strong {
+  display: block;
+}
+
+.metric-grid span {
+  margin-bottom: 9px;
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.metric-grid strong {
+  font-size: 22px;
+}
+
+.panel-primary,
+.panel-ghost {
+  min-height: 40px;
+  padding: 0 18px;
+  font-size: 14px;
+}
+
+.records-grid {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  margin-top: 16px;
+}
+
+.record-list {
+  gap: 10px;
+  padding: 18px 22px 22px;
+}
+
+.record-row > div {
+  min-width: 0;
+}
+
+.record-row strong,
+.record-row span {
+  display: block;
+}
+
+.record-row span {
+  overflow: hidden;
+  max-width: 420px;
+  margin-top: 4px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 12px;
+}
+
+.record-row small {
+  flex: 0 0 auto;
+  font-size: 12px;
+}
+
+.compact-state {
+  padding: 44px 22px;
+  text-align: center;
+}
+
+:global(.public-style-light) .hero-copy h1 span:first-child,
+:global(.public-style-light) .hero-copy h1 span:last-child {
+  background: none;
+  color: #101412;
+  -webkit-text-fill-color: currentColor;
+}
+
+:global(.public-style-light) .hero-desc,
+:global(.public-style-light) .prize-band span,
+:global(.public-style-light) .draw-rule span,
+:global(.public-style-light) .active-winner span,
+:global(.public-style-light) .active-winner small,
+:global(.public-style-light) .winner-row span,
+:global(.public-style-light) .record-row span,
+:global(.public-style-light) .record-row small,
+:global(.public-style-light) .metric-grid span,
+:global(.public-style-light) .progress-copy span,
+:global(.public-style-light) .eligibility-badge small,
+:global(.public-style-light) .login-state span,
+:global(.public-style-light) .compact-state,
+:global(.public-style-light) .rule-card p {
+  color: #264b32;
+}
+
+:global(.public-style-light) .hero-kicker,
+:global(.public-style-light) .panel-head p,
+:global(.public-style-light) .rule-card span {
+  color: #087b2f;
+}
+
+:global(.public-style-light) .draw-stage,
+:global(.public-style-light) .rule-card,
+:global(.public-style-light) .winners-panel,
+:global(.public-style-light) .eligibility-panel,
+:global(.public-style-light) .records-panel {
+  border-color: rgba(8, 123, 47, 0.2);
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.94), rgba(239, 250, 241, 0.78));
+  box-shadow: 0 18px 60px rgba(6, 58, 22, 0.1);
+}
+
+:global(.public-style-light) .draw-stage {
+  border-color: rgba(15, 127, 120, 0.26);
+  background:
+    radial-gradient(circle at 50% 28%, rgba(8, 123, 47, 0.14), transparent 34%),
+    radial-gradient(circle at 20% 82%, rgba(184, 121, 20, 0.12), transparent 30%),
+    linear-gradient(145deg, rgba(255, 255, 255, 0.96), rgba(230, 247, 244, 0.82));
+}
+
+:global(.public-style-light) .draw-stage::before,
+:global(.public-style-light) .panel-head,
+:global(.public-style-light) .winner-row,
+:global(.public-style-light) .record-row,
+:global(.public-style-light) .metric-grid article,
+:global(.public-style-light) .active-winner {
+  border-color: rgba(8, 123, 47, 0.18);
+}
+
+:global(.public-style-light) .logo-orbit {
+  border-color: rgba(8, 123, 47, 0.42);
+  background: linear-gradient(135deg, #0fbf4a 0%, #58c7b1 58%, #f2c45a 100%);
+  color: #001a06;
+  box-shadow: 0 20px 60px rgba(8, 123, 47, 0.18);
+}
+
+:global(.public-style-light) .prize-band,
+:global(.public-style-light) .draw-rule,
+:global(.public-style-light) .winner-row,
+:global(.public-style-light) .record-row,
+:global(.public-style-light) .metric-grid article {
+  background: rgba(255, 255, 255, 0.78);
+}
+
+:global(.public-style-light) .prize-band,
+:global(.public-style-light) .draw-rule {
+  border-color: rgba(15, 127, 120, 0.24);
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.92), rgba(230, 247, 244, 0.78));
+  box-shadow: 0 10px 26px rgba(15, 127, 120, 0.09);
+}
+
+:global(.public-style-light) .active-winner {
+  background: linear-gradient(180deg, rgba(232, 248, 236, 0.95), rgba(255, 247, 223, 0.68));
+}
+
+:global(.public-style-light) .winner-row.active {
+  border-color: rgba(8, 123, 47, 0.34);
+  background: rgba(232, 248, 236, 0.88);
+}
+
+:global(.public-style-light) .prize-band strong,
+:global(.public-style-light) .draw-rule strong,
+:global(.public-style-light) .rule-card strong,
+:global(.public-style-light) .panel-head h2,
+:global(.public-style-light) .active-winner strong,
+:global(.public-style-light) .winner-row strong,
+:global(.public-style-light) .record-row strong,
+:global(.public-style-light) .metric-grid strong,
+:global(.public-style-light) .progress-copy strong,
+:global(.public-style-light) .eligibility-badge strong,
+:global(.public-style-light) .login-state strong {
+  color: #101412;
+}
+
+:global(.public-style-light) .record-row,
+:global(.public-style-light) .winner-row,
+:global(.public-style-light) .metric-grid article,
+:global(.public-style-light) .progress-copy {
+  color: #102018;
+}
+
+:global(.public-style-light) .btn-primary,
+:global(.public-style-light) .panel-primary {
+  border-color: #087b2f;
+  background: linear-gradient(180deg, #0a8f36 0%, #066828 100%);
+  color: #fff;
+  box-shadow:
+    0 14px 34px rgba(8, 123, 47, 0.22),
+    inset 0 1px rgba(255, 255, 255, 0.24);
+}
+
+:global(.public-style-light) .btn-ghost,
+:global(.public-style-light) .panel-ghost,
+:global(.public-style-light) .icon-button {
+  border-color: rgba(15, 127, 120, 0.32);
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.98), rgba(230, 247, 244, 0.84));
+  color: #0c514c;
+  box-shadow: 0 10px 26px rgba(15, 127, 120, 0.1);
+}
+
+:global(.public-style-light) .rule-icon,
+:global(.public-style-light) .live-chip {
+  border-color: rgba(8, 123, 47, 0.28);
+  background: rgba(232, 248, 236, 0.86);
+  color: #087b2f;
+}
+
+:global(.public-style-light) .eligibility-badge {
+  border-color: rgba(184, 121, 20, 0.28);
+  background: #fff7df;
+}
+
+:global(.public-style-light) .eligibility-badge span {
+  color: #9a5f05;
+}
+
+:global(.public-style-light) .eligibility-badge.qualified {
+  border-color: rgba(8, 123, 47, 0.32);
+  background: #e8f8ec;
+}
+
+:global(.public-style-light) .eligibility-badge.qualified span {
+  color: #087b2f;
+}
+
+:global(.public-style-light) .progress-track {
+  background: rgba(8, 123, 47, 0.12);
+}
+
+:global(.public-style-light) .progress-track span {
+  background: linear-gradient(90deg, #0a8f36, #0f7f78, #f6c85f);
+}
+
+:global(.public-style-light) .green-dot,
+:global(.public-style-light) .live-chip i {
+  background: #0a8f36;
+  box-shadow:
+    0 0 0 4px rgba(10, 143, 54, 0.12),
+    0 0 16px rgba(10, 143, 54, 0.36);
+}
+
+:global(.public-style-light) .pixel-prizes i {
+  background: #0a8f36;
+  box-shadow:
+    18px 28px 0 rgba(15, 127, 120, 0.38),
+    42px 8px 0 rgba(184, 121, 20, 0.24);
+}
+
+.winner-slide-enter-active,
+.winner-slide-leave-active {
+  transition: opacity 0.22s ease, transform 0.22s ease;
+}
+
+.winner-slide-enter-from {
+  opacity: 0;
+  transform: translateY(10px);
+}
+
+.winner-slide-leave-to {
+  opacity: 0;
+  transform: translateY(-10px);
+}
+
+.spinning {
+  animation: spin 0.9s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes prizeFloat {
+  0%,
+  100% {
+    opacity: 0.35;
+    transform: translateY(0);
+  }
+
+  50% {
+    opacity: 0.85;
+    transform: translateY(-18px);
+  }
+}
+
+@media (max-width: 1080px) {
+  .lottery-hero,
+  .content-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .rule-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 720px) {
+  .lottery-page {
+    padding: 42px 16px 64px;
+  }
+
+  .lottery-hero {
+    min-height: auto;
+  }
+
+  .draw-stage {
+    min-height: 390px;
+  }
+
+  .hero-actions,
+  .panel-actions,
+  .records-grid,
+  .rule-grid,
+  .metric-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .btn-primary,
+  .btn-ghost,
+  .panel-primary,
+  .panel-ghost {
+    width: 100%;
+  }
+
+  .records-grid,
+  .rule-grid,
+  .metric-grid {
+    display: grid;
+  }
+
+  .progress-copy,
+  .record-row {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .record-row small {
+    flex: auto;
+  }
 }
 </style>

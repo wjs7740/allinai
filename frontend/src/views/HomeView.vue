@@ -1,6 +1,6 @@
 <template>
-  <div class="allincode-home min-h-screen bg-black text-white">
-    <header class="announcement" @click="scrollToSection('business-console')">
+  <div :class="['allcancode-home min-h-screen bg-black text-white', homeStyleClass]">
+    <header class="announcement" @click="scrollToSection('pricing')">
       <div class="pixel-row pixel-row-left" aria-hidden="true">
         <span v-for="color in pixelColors" :key="`left-${color}`" :style="{ background: color }"></span>
       </div>
@@ -13,38 +13,57 @@
 
     <nav class="top-nav">
       <div class="nav-inner">
-        <a href="/home/" class="brand">
-          {{ brandName }}
-        </a>
+        <RouterLink to="/home" class="brand">
+          <span class="brand-mark">
+            <span>{{ brandInitial }}</span>
+          </span>
+          <span>{{ brandName }}</span>
+        </RouterLink>
 
-        <div class="nav-tabs" aria-label="AllinCode 功能导航">
-          <button
+        <div class="nav-tabs" aria-label="AllCanCode navigation">
+          <RouterLink
+            to="/home"
+            class="nav-tab"
+            exact-active-class="active"
+          >
+            {{ t('nav.home') }}
+          </RouterLink>
+          <RouterLink
             v-for="tab in productTabs"
             :key="tab.key"
-            type="button"
-            :class="{ active: activeTab === tab.key }"
-            @click="selectTab(tab.key)"
+            :to="tab.to"
+            class="nav-tab"
+            active-class="active"
           >
             {{ tab.label }}
-          </button>
+          </RouterLink>
         </div>
 
         <div class="nav-actions">
           <LocaleSwitcher />
-          <a
+          <button
+            type="button"
+            class="style-toggle"
+            :aria-label="styleMode === 'dark' ? 'Switch to light style' : 'Switch to dark style'"
+            :title="styleMode === 'dark' ? 'Light style' : 'Dark style'"
+            @click="toggleStyle"
+          >
+            <Icon :name="styleMode === 'dark' ? 'sun' : 'moon'" size="sm" />
+          </button>
+          <RouterLink
             v-if="isAuthenticated"
-            :href="dashboardPath"
+            :to="dashboardPath"
             class="login-btn"
           >
-            控制台
-          </a>
-          <a
+            {{ t('home.dashboard') }}
+          </RouterLink>
+          <RouterLink
             v-else
-            href="/login"
+            to="/login"
             class="login-btn"
           >
-            登录
-          </a>
+            {{ t('auth.signIn') }}
+          </RouterLink>
         </div>
       </div>
     </nav>
@@ -70,34 +89,38 @@
         <div class="halo" aria-hidden="true"></div>
 
         <div class="hero-content">
-          <p class="hero-kicker">{{ brandName }} AI Gateway</p>
+          <p class="hero-kicker">{{ homeCopy.heroKicker }}</p>
           <h1 class="hero-title">
             <span class="hero-tagline">
-              一个 Key，接入
+              {{ homeCopy.heroTitleTop }}
               <span class="pixel-mark" aria-hidden="true">
                 <i></i><i></i><i></i><i></i><i></i>
               </span>
             </span>
-            <span class="hero-main">所有主流 AI 大模型</span>
+            <span class="hero-main">{{ homeCopy.heroTitleMain }}</span>
           </h1>
 
           <p class="hero-subtitle">
-            [ OpenAI · Claude · Gemini · DeepSeek · Qwen · Kimi 等
-            <span>500+</span>
-            模型 ]
+            {{ homeCopy.heroSubtitle }}
           </p>
           <p class="hero-desc">
-            人民币付款 · 低于官方价格 · 按量即用 · 失败不计费
+            {{ homeCopy.heroDesc }}
           </p>
+
+          <div class="signup-bonus">
+            <span>{{ homeCopy.signupBonusKicker }}</span>
+            <strong>{{ homeCopy.signupBonusTitle }}</strong>
+            <small>{{ homeCopy.signupBonusText }}</small>
+          </div>
 
           <div class="hero-buttons">
             <a :href="primaryCta.to" class="btn-primary">
               {{ primaryCta.label }}
               <span class="arrow-stack" aria-hidden="true">»</span>
             </a>
-            <button class="btn-ghost" type="button" @click="selectTab('plans')">
+            <button class="btn-ghost" type="button" @click="scrollToSection('pricing')">
               <span class="green-dot"></span>
-              查看套餐与额度
+              {{ homeCopy.viewPlans }}
             </button>
           </div>
         </div>
@@ -124,41 +147,31 @@
         </div>
       </section>
 
-      <section id="business-console" class="business-section">
-        <div class="section-heading">
-          <p>ALLINCODE CONSOLE</p>
-          <h2>{{ activeProduct.title }}</h2>
-          <span>{{ activeProduct.description }}</span>
-        </div>
-
-        <div class="business-panel">
-          <div class="business-main">
-            <p class="feature-kicker">{{ activeProduct.badge }}</p>
-            <h3>{{ activeProduct.headline }}</h3>
-            <p>{{ activeProduct.body }}</p>
-            <div class="feature-actions">
-              <a :href="activeProduct.primaryTo" class="panel-primary">
-                {{ activeProduct.primaryLabel }}
-              </a>
-              <a
-                v-if="activeProduct.secondaryTo"
-                :href="activeProduct.secondaryTo"
-                class="panel-ghost"
-              >
-                {{ activeProduct.secondaryLabel }}
-              </a>
-            </div>
+      <section id="pricing" class="popular-section">
+        <div class="popular-inner">
+          <div class="popular-heading">
+            <h2><span>{{ homeCopy.popularMuted }}</span> {{ homeCopy.popularTitle }}</h2>
+            <p>{{ homeCopy.popularText }}</p>
           </div>
 
-          <div :class="['business-preview', `preview-${activeTab}`]">
-            <article
-              v-for="item in activePreviewItems"
-              :key="`${activeTab}-${item.title}-${item.meta}`"
-              class="preview-card"
-            >
-              <span>{{ item.meta }}</span>
-              <strong>{{ item.title }}</strong>
-              <p>{{ item.text }}</p>
+          <a :href="SHOP_URL" class="view-all-models">
+            {{ homeCopy.viewModels }}
+            <span>»</span>
+          </a>
+
+          <div class="model-card-grid">
+            <article v-for="model in popularModels" :key="model.name" class="model-card">
+              <div class="model-logo">{{ model.logo }}</div>
+              <span class="model-badge">{{ model.badge }}</span>
+              <h3>{{ model.name }}</h3>
+              <p>{{ model.context }}</p>
+              <div class="price-box">
+                <span>{{ model.leftLabel }} <strong>{{ model.input }}</strong></span>
+                <span>{{ model.rightLabel }} <strong>{{ model.output }}</strong></span>
+              </div>
+              <div class="model-tags">
+                <span v-for="tag in model.tags" :key="tag">{{ tag }}</span>
+              </div>
             </article>
           </div>
         </div>
@@ -166,8 +179,8 @@
 
       <section class="reliability-section">
         <div class="center-heading">
-          <h2><span>One Key,</span> Rock-Solid Reliability</h2>
-          <p>一个 API、一个 Key，统一接入多家模型服务。透明计费、智能路由、高可用和数据安全一起打包给你。</p>
+          <h2><span>{{ homeCopy.reliabilityMuted }}</span> {{ homeCopy.reliabilityTitle }}</h2>
+          <p>{{ homeCopy.reliabilityText }}</p>
         </div>
 
         <div class="reliability-grid">
@@ -183,40 +196,10 @@
         </div>
       </section>
 
-      <section class="popular-section">
-        <div class="popular-inner">
-          <div class="popular-heading">
-            <h2><span>Popular</span> Models</h2>
-            <p>来自主流服务商的热门模型，统一入口、统一账单、统一密钥。</p>
-          </div>
-
-          <a href="/keys" class="view-all-models">
-            View All 500+ 模型
-            <span>»</span>
-          </a>
-
-          <div class="model-card-grid">
-            <article v-for="model in popularModels" :key="model.name" class="model-card">
-              <div class="model-logo">{{ model.logo }}</div>
-              <span class="model-badge">{{ model.badge }}</span>
-              <h3>{{ model.name }}</h3>
-              <p>{{ model.context }}</p>
-              <div class="price-box">
-                <span>Input <strong>{{ model.input }}</strong></span>
-                <span>Output <strong>{{ model.output }}</strong></span>
-              </div>
-              <div class="model-tags">
-                <span v-for="tag in model.tags" :key="tag">{{ tag }}</span>
-              </div>
-            </article>
-          </div>
-        </div>
-      </section>
-
       <section class="quickstart-section">
         <div class="center-heading">
-          <h2><span>Quick</span> Start Guide</h2>
-          <p>从注册到第一次调用，按 Code0 式的清晰路径完成 AllinCode 接入。</p>
+          <h2><span>{{ homeCopy.quickMuted }}</span> {{ homeCopy.quickTitle }}</h2>
+          <p>{{ homeCopy.quickText }}</p>
         </div>
 
         <div class="timeline">
@@ -231,28 +214,28 @@
 
       <section class="code-section">
         <div class="code-copy">
-          <p>OPENAI SDK COMPATIBLE</p>
-          <h2>替换 Base URL，马上开始调用</h2>
-          <span>保持熟悉的 OpenAI SDK 写法，只需要把密钥换成 AllinCode API Key。</span>
-          <a href="/keys" class="panel-primary">生成 API Key</a>
+          <p>{{ homeCopy.codeKicker }}</p>
+          <h2>{{ homeCopy.codeTitle }}</h2>
+          <span>{{ homeCopy.codeText }}</span>
+          <a href="/keys" class="panel-primary">{{ homeCopy.createKey }}</a>
         </div>
         <pre class="code-window"><code>import OpenAI from "openai";
 
 const client = new OpenAI({
-  apiKey: "ak-allincode-...",
-  baseURL: "https://api.allincode.ai/v1"
+  apiKey: "ak-allcancode-...",
+  baseURL: "https://api.allcancode.ai/v1"
 });
 
 const completion = await client.chat.completions.create({
   model: "gpt-4o-mini",
-  messages: [{ role: "user", content: "Hello AllinCode" }]
+  messages: [{ role: "user", content: "Hello AllCanCode" }]
 });</code></pre>
       </section>
 
       <section class="testimonial-section">
         <div class="center-heading">
-          <h2><span>Built for</span> AI Builders</h2>
-          <p>适合个人开发者、AI 产品团队、自动化工作流和内容创作者统一管理模型调用。</p>
+          <h2><span>{{ homeCopy.builtMuted }}</span> {{ homeCopy.builtTitle }}</h2>
+          <p>{{ homeCopy.builtText }}</p>
         </div>
         <div class="testimonial-grid">
           <article v-for="item in testimonials" :key="item.name" class="testimonial-card">
@@ -265,9 +248,9 @@ const completion = await client.chat.completions.create({
 
       <section class="final-cta">
         <div>
-          <p>ALLINCODE</p>
-          <h2>一个账户，管理你的全部 AI 模型调用</h2>
-          <span>先选套餐，再创建 Key。额度、订单、返利、排行和模型健康都在同一个入口。</span>
+          <p>{{ homeCopy.finalKicker }}</p>
+          <h2>{{ homeCopy.finalTitle }}</h2>
+          <span>{{ homeCopy.finalText }}</span>
         </div>
         <a :href="primaryCta.to" class="btn-primary">
           {{ primaryCta.label }}
@@ -280,71 +263,34 @@ const completion = await client.chat.completions.create({
 
 <script setup lang="ts">
 import { computed, onMounted, ref } from 'vue'
+import { useI18n } from 'vue-i18n'
 import LocaleSwitcher from '@/components/common/LocaleSwitcher.vue'
+import Icon from '@/components/icons/Icon.vue'
 import { useAuthStore } from '@/stores/auth'
 import { useAppStore } from '@/stores/app'
-import { paymentAPI } from '@/api/payment'
 import usageAPI, { type UserDashboardStats } from '@/api/usage'
-import keysAPI from '@/api/keys'
-import userAPI from '@/api/user'
 import channelMonitorUserAPI, { type UserMonitorView } from '@/api/channelMonitor'
 import announcementsAPI from '@/api/announcements'
-import dashboardAPI from '@/api/admin/dashboard'
-import type {
-  ApiKey,
-  UserAffiliateDetail,
-  UserAnnouncement,
-  UserSpendingRankingItem,
-} from '@/types'
-import type { PaymentOrder, SubscriptionPlan } from '@/types/payment'
-
-type ProductTabKey =
-  | 'plans'
-  | 'dashboard'
-  | 'orders'
-  | 'keys'
-  | 'affiliate'
-  | 'ranking'
-  | 'monitor'
-  | 'activity'
-
-interface ProductConfig {
-  key: ProductTabKey
-  label: string
-  title: string
-  badge: string
-  headline: string
-  description: string
-  body: string
-  primaryLabel: string
-  primaryTo: string
-  secondaryLabel?: string
-  secondaryTo?: string
-}
-
-interface PreviewItem {
-  meta: string
-  title: string
-  text: string
-}
+import type { UserAnnouncement } from '@/types'
 
 const authStore = useAuthStore()
 const appStore = useAppStore()
+const { t, locale } = useI18n()
 
-const brandName = 'AllinCode'
-const activeTab = ref<ProductTabKey>('plans')
-const checkoutPlans = ref<SubscriptionPlan[]>([])
+const brandName = computed(() => appStore.cachedPublicSettings?.site_name || appStore.siteName || 'AllCanCode')
+const brandInitial = computed(() => 'AC')
+const STYLE_STORAGE_KEY = 'allcancode_public_style'
+const SHOP_URL = 'https://shop.allincode.top'
+const styleMode = ref<'dark' | 'light'>(readStyleMode())
 const dashboardStats = ref<UserDashboardStats | null>(null)
-const latestOrders = ref<PaymentOrder[]>([])
-const latestKeys = ref<ApiKey[]>([])
-const affiliateDetail = ref<UserAffiliateDetail | null>(null)
-const rankingItems = ref<UserSpendingRankingItem[]>([])
 const monitorCards = ref<UserMonitorView[]>([])
 const announcementsPreview = ref<UserAnnouncement[]>([])
 
 const isAuthenticated = computed(() => authStore.isAuthenticated)
 const isAdmin = computed(() => authStore.isAdmin)
 const dashboardPath = computed(() => (isAdmin.value ? '/admin/dashboard' : '/dashboard'))
+const isZh = computed(() => locale.value.startsWith('zh'))
+const homeStyleClass = computed(() => (styleMode.value === 'light' ? 'public-style-light' : 'public-style-dark'))
 
 const pixelColors = ['#2EC353', '#19A63C', '#078C28', '#008020', '#00731C', '#006619', '#004D13', '#00330D', '#001A06', '#000000']
 
@@ -359,35 +305,99 @@ const lightBars = Array.from({ length: 76 }, (_, index) => ({
 
 const topAnnouncement = computed(() => {
   if (announcementsPreview.value.length) return announcementsPreview.value[0].title
-  return 'AllinCode 新用户注册即享多模型聚合调用体验'
+  return isZh.value
+    ? 'AllCanCode 现在用一个统一 API 接入 OpenAI、Claude 和 Gemini'
+    : 'AllCanCode now routes OpenAI, Claude, and Gemini through one unified API'
 })
 
 const primaryCta = computed(() => ({
-  label: isAuthenticated.value ? '进入控制台' : '免费开始使用',
+  label: isAuthenticated.value ? t('home.dashboard') : t('home.getStarted'),
   to: isAuthenticated.value ? dashboardPath.value : '/register',
 }))
 
+const homeCopy = computed(() => isZh.value ? {
+  heroKicker: `${brandName.value} AI 网关`,
+  heroTitleTop: '一个 Key 接入',
+  heroTitleMain: 'OpenAI、Claude 与 Gemini',
+  heroSubtitle: '[ OpenAI · Claude · Gemini · GPT-5.5 · Claude Opus 4.8 · Gemini 3 Pro ]',
+  heroDesc: '兼容 OpenAI SDK · 统一计费 · 按量付费 · 失败请求不计费',
+  signupBonusKicker: '新用户福利',
+  signupBonusTitle: '注册即送 10 刀额度',
+  signupBonusText: '完成注册后可直接用于模型调用测试',
+  viewPlans: '查看套餐与余额',
+  reliabilityMuted: '一个 Key，',
+  reliabilityTitle: '稳定可靠',
+  reliabilityText: '一个 API 和一个 Key 接入 OpenAI、Claude 与 Gemini。透明计费、智能路由、高可用和更安全的密钥管理都已内置。',
+  popularMuted: '套餐',
+  popularTitle: '价格',
+  popularText: '当前余额卡和订阅卡价格，适合按量调用、短期高频和连续项目使用。',
+  viewModels: '购买套餐',
+  quickMuted: '快速',
+  quickTitle: '上手指南',
+  quickText: '从注册到第一次 OpenAI 兼容请求，按 AllCanCode 的流程快速完成。',
+  codeKicker: '兼容 OPENAI SDK',
+  codeTitle: '切换 Base URL 即可开始调用',
+  codeText: '保留现有 OpenAI SDK 代码，在统一网关使用 AllCanCode API Key。',
+  createKey: '创建 API Key',
+  builtMuted: '为 AI',
+  builtTitle: '开发者而建',
+  builtText: '面向开发者、AI 产品团队、自动化工作流和需要统一管理模型调用的创作者。',
+  finalKicker: 'ALLCANCODE',
+  finalTitle: '一个账号管理 OpenAI、Claude 与 Gemini 调用',
+  finalText: '选择套餐、创建 Key，并在同一控制台管理用量、订单、邀请、排行榜和模型健康状态。',
+} : {
+  heroKicker: `${brandName.value} AI Gateway`,
+  heroTitleTop: 'One Key for',
+  heroTitleMain: 'OpenAI, Claude & Gemini',
+  heroSubtitle: '[ OpenAI · Claude · Gemini · GPT-5.5 · Claude Opus 4.8 · Gemini 3 Pro ]',
+  heroDesc: 'OpenAI SDK compatible · Unified billing · Pay as you go · Failed requests are not charged',
+  signupBonusKicker: 'New user bonus',
+  signupBonusTitle: 'Sign up and get $10 credit',
+  signupBonusText: 'Use it for model-call testing right after registration',
+  viewPlans: 'View Plans & Credits',
+  reliabilityMuted: 'One Key,',
+  reliabilityTitle: 'Rock-Solid Reliability',
+  reliabilityText: 'One API and one key for OpenAI, Claude, and Gemini. Transparent billing, smart routing, high availability, and safer key management are built in.',
+  popularMuted: 'Plan',
+  popularTitle: 'Pricing',
+  popularText: 'Current balance cards and subscription cards for pay-as-you-go calls, short bursts, and continuous projects.',
+  viewModels: 'Buy Plans',
+  quickMuted: 'Quick',
+  quickTitle: 'Start Guide',
+  quickText: 'Go from signup to your first OpenAI-compatible request with a clean AllCanCode setup flow.',
+  codeKicker: 'OPENAI SDK COMPATIBLE',
+  codeTitle: 'Switch the Base URL and start calling',
+  codeText: 'Keep your existing OpenAI SDK code and use an AllCanCode API key at the unified gateway.',
+  createKey: 'Create API Key',
+  builtMuted: 'Built for',
+  builtTitle: 'AI Builders',
+  builtText: 'Built for developers, AI product teams, automation workflows, and creators managing model calls in one place.',
+  finalKicker: 'ALLCANCODE',
+  finalTitle: 'One account for your OpenAI, Claude, and Gemini calls',
+  finalText: 'Choose a plan, create a key, and manage usage, orders, referrals, rankings, and model health from one console.',
+})
+
 const heroStats = computed(() => [
   {
-    label: '支持模型',
-    value: checkoutPlans.value.length ? `${Math.max(500, checkoutPlans.value.length * 80)}+` : '500+',
+    label: 'Model families',
+    value: '3',
     symbolClass: 'symbol-shapes',
     shapes: ['triangle', 'circle', 'cross', 'square'],
   },
   {
-    label: '接入服务商',
-    value: '40+',
+    label: 'Provider routes',
+    value: '3',
     symbolClass: 'symbol-connection',
     shapes: ['line-a', 'line-b', 'line-c', 'line-d'],
   },
   {
-    label: '平均延迟',
+    label: 'Avg. latency',
     value: dashboardStats.value ? formatLatency(dashboardStats.value.average_duration_ms) : '<100ms',
     symbolClass: 'symbol-cube',
     shapes: ['cube-a', 'cube-b', 'cube-c'],
   },
   {
-    label: '服务在线率',
+    label: 'Uptime',
     value: monitorCards.value.length ? `${formatAvailability()}%` : '99.8%',
     symbolClass: 'symbol-atom',
     shapes: ['orbit-a', 'orbit-b', 'core'],
@@ -396,14 +406,14 @@ const heroStats = computed(() => [
 
 const modelStrip = [
   { name: 'OpenAI', icon: '◎' },
+  { name: 'GPT-5.5', icon: '◎' },
+  { name: 'GPT-5.4', icon: '◎' },
+  { name: 'OpenAI Fable', icon: '◎' },
   { name: 'Claude', icon: '✺' },
+  { name: 'Claude Opus 4.8', icon: '✺' },
+  { name: 'Claude Sonnet 4.6', icon: '✺' },
   { name: 'Gemini', icon: '✦' },
-  { name: 'DeepSeek', icon: '◔' },
-  { name: 'Qwen', icon: '✥' },
-  { name: 'Kimi', icon: 'K' },
-  { name: 'Grok', icon: '◍' },
-  { name: 'Llama', icon: '∞' },
-  { name: 'Coze', icon: '☁' },
+  { name: 'Gemini 3 Pro', icon: '✦' },
 ]
 
 const duplicatedModelStrip = computed(() =>
@@ -415,281 +425,100 @@ const duplicatedModelStrip = computed(() =>
   )
 )
 
-const productConfigs = computed<Record<ProductTabKey, ProductConfig>>(() => ({
-  plans: {
-    key: 'plans',
-    label: '套餐选购',
-    title: '套餐选购',
-    badge: 'Pricing',
-    headline: '按需选择额度包，余额实时到账',
-    description: '选择适合自己的 AI 调用套餐，统一用于多模型请求、API 调用和应用集成。',
-    body: '从个人体验到团队开发都可以用同一个账户完成充值、续费和套餐管理。失败请求不扣费，额度消耗清晰可查。',
-    primaryLabel: '前往购买',
-    primaryTo: '/purchase',
-    secondaryLabel: '订单查询',
-    secondaryTo: '/orders',
-  },
-  dashboard: {
-    key: 'dashboard',
-    label: '数据面板',
-    title: '数据面板',
-    badge: 'Dashboard',
-    headline: '请求、Token、花费和延迟一屏看清',
-    description: '把账户余额、今日请求、Token 消耗、模型分布和调用趋势集中展示。',
-    body: '适合开发者持续观察成本和效果，快速定位高频模型、异常请求和额度消耗变化。',
-    primaryLabel: '打开面板',
-    primaryTo: '/dashboard',
-    secondaryLabel: '查看用量',
-    secondaryTo: '/usage',
-  },
-  orders: {
-    key: 'orders',
-    label: '订单查询',
-    title: '订单查询',
-    badge: 'Orders',
-    headline: '充值订单、支付状态、到账记录随时追踪',
-    description: '按照订单号、金额和状态查看最近支付记录，方便核对套餐与余额变化。',
-    body: '支付完成后系统自动同步账户额度，历史订单可用于团队报销、财务核对和异常排查。',
-    primaryLabel: '查看订单',
-    primaryTo: '/orders',
-    secondaryLabel: '购买套餐',
-    secondaryTo: '/purchase',
-  },
-  keys: {
-    key: 'keys',
-    label: 'API 密钥',
-    title: 'API 密钥',
-    badge: 'Keys',
-    headline: '一个 Key 接入全部主流模型',
-    description: '创建、启停、轮换和管理 API Key，用统一入口接入 OpenAI 兼容生态。',
-    body: '密钥可配合不同项目使用，调用记录和额度消耗会自动回流到账户数据面板。',
-    primaryLabel: '管理密钥',
-    primaryTo: '/keys',
-    secondaryLabel: '查看文档',
-    secondaryTo: '/dashboard',
-  },
-  affiliate: {
-    key: 'affiliate',
-    label: '邀请返利',
-    title: '邀请返利',
-    badge: 'Affiliate',
-    headline: '邀请新用户注册，充值后自动返利',
-    description: '分享邀请码或邀请链接，被邀请用户充值后返利进入你的账户。',
-    body: '返利额度可随时转入账户余额。邀请人数、返利比例、历史返利和可转余额都可以在返利中心查看。',
-    primaryLabel: '返利中心',
-    primaryTo: '/affiliate',
-    secondaryLabel: '立即注册',
-    secondaryTo: '/register',
-  },
-  ranking: {
-    key: 'ranking',
-    label: '用量排行',
-    title: '用量排行',
-    badge: 'Ranking',
-    headline: '按请求数、Token 数和花费查看活跃排行',
-    description: '用脱敏排行呈现平台活跃度，也帮助团队理解模型调用规模。',
-    body: '支持按时间范围和花费维度查看排名，适合运营活动、用量激励和公开榜单展示。',
-    primaryLabel: '查看用量',
-    primaryTo: '/usage',
-    secondaryLabel: isAdmin.value ? '管理总览' : undefined,
-    secondaryTo: isAdmin.value ? '/admin/dashboard' : undefined,
-  },
-  monitor: {
-    key: 'monitor',
-    label: '模型健康',
-    title: '模型健康',
-    badge: 'Monitor',
-    headline: '模型可用率、延迟和状态实时可见',
-    description: '在调用前了解模型健康状态，减少不可用模型带来的业务波动。',
-    body: '通过多节点监控和智能路由，优先选择可用率更高、延迟更低的模型通道。',
-    primaryLabel: '查看监控',
-    primaryTo: '/monitor',
-    secondaryLabel: isAdmin.value ? '监控后台' : undefined,
-    secondaryTo: isAdmin.value ? '/admin/channels/monitor' : undefined,
-  },
-  activity: {
-    key: 'activity',
-    label: '活动抽奖',
-    title: '活动抽奖',
-    badge: 'Campaign',
-    headline: '签到、抽奖、邀请活动都在这里',
-    description: '为新用户和活跃用户准备额度奖励、充值券、邀请加成和节日活动。',
-    body: '活动规则、开奖公告和中奖记录统一展示，后续可接入自动抽奖和任务奖励体系。',
-    primaryLabel: '查看活动',
-    primaryTo: '/dashboard',
-    secondaryLabel: isAdmin.value ? '管理公告' : undefined,
-    secondaryTo: isAdmin.value ? '/admin/announcements' : undefined,
-  },
-}))
-
 const productTabs = computed(() =>
-  Object.values(productConfigs.value).map(({ key, label }) => ({ key, label }))
+  [
+    { key: 'ranking', label: t('nav.ranking'), to: '/ranking' },
+    { key: 'monitor', label: t('nav.monitor'), to: '/monitor' },
+    { key: 'key-usage', label: t('nav.keyUsage'), to: '/key-usage' },
+  ]
 )
 
-const activeProduct = computed(() => productConfigs.value[activeTab.value])
-
-const activePreviewItems = computed<PreviewItem[]>(() => {
-  if (activeTab.value === 'plans') {
-    const plans = checkoutPlans.value.slice(0, 3)
-    if (plans.length) {
-      return plans.map((plan) => ({
-        meta: plan.group_name || 'AI Plan',
-        title: `${plan.name} · $${formatPrice(plan.price)}`,
-        text: normalizePlanFeatures(plan.features)[0] || '多模型通用额度，购买后自动到账。',
-      }))
-    }
-  }
-
-  if (activeTab.value === 'dashboard' && dashboardStats.value) {
-    return [
-      { meta: 'Today', title: `${formatCompactNumber(dashboardStats.value.today_requests)} 次请求`, text: '今日 API 请求量实时汇总。' },
-      { meta: 'Tokens', title: formatTokenCount(dashboardStats.value.total_tokens), text: '累计 Token 用量自动统计。' },
-      { meta: 'Latency', title: formatLatency(dashboardStats.value.average_duration_ms), text: '平均响应延迟帮助判断调用体验。' },
-    ]
-  }
-
-  if (activeTab.value === 'orders' && latestOrders.value.length) {
-    return latestOrders.value.slice(0, 3).map((order) => ({
-      meta: formatOrderStatus(order.status),
-      title: `$${formatPrice(order.amount)}`,
-      text: order.out_trade_no,
-    }))
-  }
-
-  if (activeTab.value === 'keys' && latestKeys.value.length) {
-    return latestKeys.value.slice(0, 3).map((key) => ({
-      meta: key.status,
-      title: key.name,
-      text: maskApiKey(key.key),
-    }))
-  }
-
-  if (activeTab.value === 'affiliate' && affiliateDetail.value) {
-    return [
-      { meta: '返利比例', title: `${trimPercent(affiliateDetail.value.effective_rebate_rate_percent)}%`, text: '被邀请用户充值后自动计入返利。' },
-      { meta: '邀请码', title: affiliateDetail.value.aff_code, text: '可复制邀请码或邀请链接分享给新用户。' },
-      { meta: '可转余额', title: `$${formatPrice(affiliateDetail.value.aff_quota)}`, text: '返利额度可转入账户余额继续调用模型。' },
-    ]
-  }
-
-  if (activeTab.value === 'ranking' && rankingItems.value.length) {
-    return rankingItems.value.slice(0, 3).map((item, index) => ({
-      meta: `#${index + 1}`,
-      title: maskEmail(item.email),
-      text: `${formatCompactNumber(item.requests)} 请求 · $${formatPrice(item.actual_cost)}`,
-    }))
-  }
-
-  if (activeTab.value === 'monitor' && monitorCards.value.length) {
-    return monitorCards.value.slice(0, 3).map((monitor) => ({
-      meta: monitor.primary_status,
-      title: monitor.primary_model,
-      text: `${monitor.group_name} · ${formatLatency(monitor.primary_latency_ms)} · ${formatPercent(monitor.availability_7d)}`,
-    }))
-  }
-
-  if (activeTab.value === 'activity' && announcementsPreview.value.length) {
-    return announcementsPreview.value.slice(0, 3).map((notice) => ({
-      meta: '公告',
-      title: notice.title,
-      text: stripHtml(notice.content).slice(0, 80) || '查看最新活动规则和奖励说明。',
-    }))
-  }
-
-  return fallbackPreviewItems.value[activeTab.value]
-})
-
-const fallbackPreviewItems = computed<Record<ProductTabKey, PreviewItem[]>>(() => ({
-  plans: [
-    { meta: '体验套餐', title: '$5 起', text: '适合测试 OpenAI 兼容接口和快速验证模型效果。' },
-    { meta: '开发套餐', title: '高性价比额度', text: '适合个人项目、自动化脚本和轻量应用。' },
-    { meta: '团队套餐', title: '统一账单', text: '适合多人协作、批量调用和稳定生产环境。' },
-  ],
-  dashboard: [
-    { meta: '请求数', title: '24h 实时统计', text: '按日查看调用趋势和异常波动。' },
-    { meta: 'Token 数', title: '输入/输出分开统计', text: '清楚知道成本花在哪里。' },
-    { meta: '成本', title: '余额消耗可追踪', text: '充值、消费、返利都能对上账。' },
-  ],
-  orders: [
-    { meta: 'Paid', title: '支付成功', text: '订单完成后额度自动到账。' },
-    { meta: 'Pending', title: '等待支付', text: '未完成订单可继续核对状态。' },
-    { meta: 'Refund', title: '异常处理', text: '支付异常可通过订单号快速排查。' },
-  ],
-  keys: [
-    { meta: 'Active', title: 'ak-allincode-****', text: '用于生产环境的主密钥。' },
-    { meta: 'Project', title: 'Webhook Bot', text: '为不同项目拆分密钥更容易管理。' },
-    { meta: 'Safe', title: '可随时停用', text: '发现泄漏或异常可立即禁用。' },
-  ],
-  affiliate: [
-    { meta: '返利比例', title: '10%', text: '被邀请用户充值后获得对应比例返利。' },
-    { meta: '邀请人数', title: '0', text: '注册用户会自动绑定你的邀请码。' },
-    { meta: '可转余额', title: 'US$0.00', text: '返利额度可一键转入账户余额。' },
-  ],
-  ranking: [
-    { meta: '#1', title: '2***@qq.com', text: '5,175,408 请求 · $25044.08' },
-    { meta: '#2', title: 'w***@163.com', text: '2,226,616 请求 · $8370.48' },
-    { meta: '#3', title: '6***@qq.com', text: '1,147,960 请求 · $5087.07' },
-  ],
-  monitor: [
-    { meta: 'Healthy', title: 'GPT-4o mini', text: '99.9% 可用率 · 86ms' },
-    { meta: 'Healthy', title: 'Claude Sonnet', text: '99.7% 可用率 · 112ms' },
-    { meta: 'Watch', title: 'Gemini Pro', text: '智能路由自动避开拥塞通道。' },
-  ],
-  activity: [
-    { meta: '新人礼', title: '注册领体验额度', text: '新用户完成注册即可参与体验活动。' },
-    { meta: '邀请赛', title: '邀请好友拿加成', text: '邀请越多，返利和奖励越高。' },
-    { meta: '抽奖', title: '充值抽模型额度', text: '活动期间充值可获得抽奖资格。' },
-  ],
-}))
-
-const reliabilityCards = [
+const reliabilityCards = computed(() => isZh.value ? [
   {
-    title: 'Unified API, One Key',
-    description: '兼容 OpenAI SDK，用一个 Key 访问 <strong>500+</strong> 模型，无需为不同服务商分别维护接入。',
+    title: '统一 API，一个 Key',
+    description: '兼容 OpenAI SDK，用一个 API Key 访问 OpenAI、Claude 和 Gemini，减少多供应商集成成本。',
     visual: 'visual-api',
   },
   {
-    title: 'Transparent Pricing, Pay in CNY',
-    description: '按量计费，失败不扣费；支持人民币支付、订单追踪和余额明细。',
+    title: '透明价格',
+    description: '按量付费，失败请求不计费，订单、余额和用量都在同一控制台查看。',
+    visual: 'visual-pricing',
+  },
+  {
+    title: '高可用与智能路由',
+    description: '路由健康检查会优先选择更稳定、更低延迟的模型渠道。',
+    visual: 'visual-routing',
+  },
+  {
+    title: '密钥安全与可观测',
+    description: '按项目管理 Key，保留请求路径可观测性，避免前端暴露敏感供应商凭据。',
+    visual: 'visual-security',
+  },
+] : [
+  {
+    title: 'Unified API, One Key',
+    description: 'OpenAI SDK compatible access to OpenAI, Claude, and Gemini with one API key instead of separate provider integrations.',
+    visual: 'visual-api',
+  },
+  {
+    title: 'Transparent Pricing',
+    description: 'Pay as you go, avoid charges on failed requests, and review orders, balance, and usage from the same console.',
     visual: 'visual-pricing',
   },
   {
     title: 'High Availability, Smart Routing',
-    description: '多通道健康监控，自动选择更稳定的模型线路，减少调用失败和排队等待。',
+    description: 'Route health checks favor more stable model channels and reduce failed calls or queueing delays.',
     visual: 'visual-routing',
   },
   {
     title: 'Data Security & Compliance',
-    description: '密钥分项目管理，请求链路可观测，不在前台暴露敏感信息。',
+    description: 'Manage keys by project, keep request paths observable, and avoid exposing sensitive provider credentials in frontend code.',
     visual: 'visual-security',
   },
-]
+])
 
-const popularModels = [
-  { logo: '✺', badge: '推荐', name: 'Claude Opus 4.7', context: '200k context', input: '¥35/M', output: '¥175/M', tags: ['对话', '推理', '写作'] },
-  { logo: '✺', badge: 'HOT', name: 'Claude Sonnet 4.6', context: '200k context', input: '¥21/M', output: '¥105/M', tags: ['对话', '视觉', '工具'] },
-  { logo: '◎', badge: 'NEW', name: 'GPT-5.4', context: '256k context', input: '¥17/M', output: '¥105/M', tags: ['对话', '工具', '代码'] },
-  { logo: '✦', badge: 'NEW', name: 'Gemini 3 Pro', context: '1M context', input: '¥14/M', output: '¥84/M', tags: ['长文', '视觉', '多模态'] },
-  { logo: '◔', badge: 'HOT', name: 'DeepSeek V3', context: '128k context', input: '¥2/M', output: '¥8/M', tags: ['中文', '代码', '低价'] },
-  { logo: '✥', badge: 'FAST', name: 'Qwen Max', context: '128k context', input: '¥8/M', output: '¥24/M', tags: ['中文', '工具', '企业'] },
-]
+const popularModels = computed(() => isZh.value ? [
+  { logo: 'AC', badge: '余额', name: '余额卡 200 刀', context: '20 USDT', leftLabel: '支付', input: '20U', rightLabel: '到账', output: '$200', tags: ['按量付费', '统一余额', '适合测试'] },
+  { logo: 'AC', badge: '余额', name: '余额卡 1000 刀', context: '98 USDT', leftLabel: '支付', input: '98U', rightLabel: '到账', output: '$1000', tags: ['高性价比', '批量任务', '团队共享'] },
+  { logo: 'AC', badge: '日卡', name: '订阅日卡', context: '24U / 天', leftLabel: '支付', input: '24U', rightLabel: '每日', output: '$300', tags: ['短期高频', '日额度', '灵活开通'] },
+  { logo: 'AC', badge: '周卡', name: '订阅周卡', context: '150U / 周', leftLabel: '支付', input: '150U', rightLabel: '每日', output: '$300', tags: ['连续项目', '周周期', '稳定使用'] },
+] : [
+  { logo: 'AC', badge: 'BALANCE', name: 'Balance Card $200', context: '20 USDT', leftLabel: 'Pay', input: '20U', rightLabel: 'Credit', output: '$200', tags: ['Pay as you go', 'Unified balance', 'Testing'] },
+  { logo: 'AC', badge: 'BALANCE', name: 'Balance Card $1000', context: '98 USDT', leftLabel: 'Pay', input: '98U', rightLabel: 'Credit', output: '$1000', tags: ['Best value', 'Batch jobs', 'Teams'] },
+  { logo: 'AC', badge: 'DAILY', name: 'Daily Subscription', context: '24U / day', leftLabel: 'Pay', input: '24U', rightLabel: 'Daily', output: '$300', tags: ['Short bursts', 'Daily quota', 'Flexible'] },
+  { logo: 'AC', badge: 'WEEKLY', name: 'Weekly Subscription', context: '150U / week', leftLabel: 'Pay', input: '150U', rightLabel: 'Daily', output: '$300', tags: ['Project cycles', 'Weekly pass', 'Stable use'] },
+])
 
-const quickStartSteps = [
-  { index: '1', title: '注册并获取 API Key', text: '进入控制台创建你的专属密钥，不到一分钟即可开始接入。' },
-  { index: '2', title: '安装 SDK 或使用 HTTP', text: '支持 Python、Node.js、Java、Go 等常见技术栈。' },
-  { index: '3', title: '发起第一次调用', text: '选择任意主流模型，把请求发送到 AllinCode 统一入口。' },
-  { index: '4', title: '查看用量与成本', text: '在数据面板查看 Token、请求数、订单和余额变化。' },
-]
+const quickStartSteps = computed(() => isZh.value ? [
+  { index: '1', title: '创建 API Key', text: '进入控制台，为你的项目创建独立 Key。' },
+  { index: '2', title: '使用 SDK 或 HTTP', text: '继续使用 Python、Node.js、Java、Go 或直接 HTTP 的 OpenAI 兼容接口。' },
+  { index: '3', title: '发起第一次请求', text: '选择 OpenAI、Claude 或 Gemini 模型，调用 AllCanCode 网关。' },
+  { index: '4', title: '追踪用量和成本', text: '在仪表盘查看 Token、请求量、订单和余额变化。' },
+] : [
+  { index: '1', title: 'Create an API key', text: 'Open the console and create a dedicated key for your project in less than a minute.' },
+  { index: '2', title: 'Use an SDK or HTTP', text: 'Keep Python, Node.js, Java, Go, or direct HTTP clients on an OpenAI-compatible interface.' },
+  { index: '3', title: 'Send the first request', text: 'Choose an OpenAI, Claude, or Gemini model and call the AllCanCode gateway.' },
+  { index: '4', title: 'Track usage and cost', text: 'Review tokens, request volume, orders, and balance changes from the dashboard.' },
+])
 
-const testimonials = [
-  { quote: '以前不同模型各开一套账号，现在一个 Key 就够，账单也好对。', name: '独立开发者', role: 'AI 工具产品' },
-  { quote: '模型健康和排行对运营很有用，能快速看出用户到底在用什么。', name: '增长负责人', role: '自动化平台' },
-  { quote: '人民币支付和订单查询解决了团队内部报销的麻烦。', name: '技术负责人', role: '内容生产团队' },
-]
+const testimonials = computed(() => isZh.value ? [
+  { quote: '保留原来的 OpenAI SDK 代码，就能加上 Claude 和 Gemini 路由。', name: '独立开发者', role: 'AI 工具' },
+  { quote: '模型健康和用量排行让生产流量去向更清楚。', name: '增长负责人', role: '自动化平台' },
+  { quote: '一个 Key 和一套订单历史，让团队的 AI 用量对账简单很多。', name: '技术负责人', role: '内容工作流团队' },
+] : [
+  { quote: 'We kept our OpenAI SDK code and added Claude and Gemini routing without rebuilding the app.', name: 'Independent Developer', role: 'AI Tools' },
+  { quote: 'Model health and usage ranking make it much easier to see where production traffic is going.', name: 'Growth Lead', role: 'Automation Platform' },
+  { quote: 'One key and one order history simplified how our team reconciles AI usage.', name: 'Tech Lead', role: 'Content Workflow Team' },
+])
 
-function selectTab(key: ProductTabKey): void {
-  activeTab.value = key
-  scrollToSection('business-console')
+function readStyleMode(): 'dark' | 'light' {
+  return localStorage.getItem(STYLE_STORAGE_KEY) === 'light' ? 'light' : 'dark'
+}
+
+function toggleStyle(): void {
+  styleMode.value = styleMode.value === 'dark' ? 'light' : 'dark'
+  localStorage.setItem(STYLE_STORAGE_KEY, styleMode.value)
+  window.dispatchEvent(new CustomEvent('allcancode-public-style-change', { detail: styleMode.value }))
 }
 
 function scrollToSection(id: string): void {
@@ -702,99 +531,14 @@ function formatAvailability(): string {
   return average.toFixed(1)
 }
 
-function formatPrice(value: number | null | undefined): string {
-  if (value == null || Number.isNaN(Number(value))) return '0.00'
-  return Number(value).toFixed(Number(value) >= 100 ? 0 : 2).replace(/\.00$/, '')
-}
-
-function formatCompactNumber(value: number | null | undefined): string {
-  const numeric = Number(value || 0)
-  if (!Number.isFinite(numeric)) return '--'
-  if (numeric >= 1000000) return `${(numeric / 1000000).toFixed(1).replace(/\.0$/, '')}M`
-  if (numeric >= 1000) return `${(numeric / 1000).toFixed(1).replace(/\.0$/, '')}K`
-  return `${numeric}`
-}
-
-function formatTokenCount(value: number | null | undefined): string {
-  const numeric = Number(value || 0)
-  if (!Number.isFinite(numeric)) return '--'
-  if (numeric >= 100000000) return `${(numeric / 100000000).toFixed(1).replace(/\.0$/, '')}B`
-  if (numeric >= 10000) return `${(numeric / 10000).toFixed(1).replace(/\.0$/, '')}W`
-  return formatCompactNumber(numeric)
-}
-
 function formatLatency(value: number | null | undefined): string {
   const numeric = Number(value)
   if (!Number.isFinite(numeric) || numeric <= 0) return '<100ms'
   return `${Math.round(numeric)}ms`
 }
 
-function formatPercent(value: number | null | undefined): string {
-  const numeric = Number(value)
-  if (!Number.isFinite(numeric)) return '--'
-  return `${numeric.toFixed(1)}%`
-}
-
-function trimPercent(value: number | null | undefined): string {
-  const numeric = Number(value || 0)
-  const rounded = Math.round(numeric * 100) / 100
-  return Number.isInteger(rounded) ? String(rounded) : rounded.toString()
-}
-
-function normalizePlanFeatures(features: string[] | string | null | undefined): string[] {
-  if (Array.isArray(features)) return features.filter(Boolean)
-  if (typeof features === 'string') {
-    try {
-      const parsed = JSON.parse(features)
-      return Array.isArray(parsed) ? parsed.filter(Boolean) : []
-    } catch {
-      return features.split('\n').map((item) => item.trim()).filter(Boolean)
-    }
-  }
-  return []
-}
-
-function maskApiKey(value: string | null | undefined): string {
-  const key = String(value || '')
-  if (!key) return '--'
-  if (key.length <= 10) return key
-  return `${key.slice(0, 6)}...${key.slice(-4)}`
-}
-
-function maskEmail(value: string | null | undefined): string {
-  const email = String(value || '')
-  const [name, domain] = email.split('@')
-  if (!name || !domain) return email || '--'
-  if (name.length <= 2) return `${name[0] || '*'}*@${domain}`
-  return `${name.slice(0, 2)}***@${domain}`
-}
-
-function stripHtml(value: string): string {
-  return value.replace(/<[^>]*>/g, '').replace(/\s+/g, ' ').trim()
-}
-
-function formatOrderStatus(value: string): string {
-  const statusMap: Record<string, string> = {
-    paid: '已支付',
-    pending: '待支付',
-    failed: '支付失败',
-    cancelled: '已取消',
-  }
-  return statusMap[value] || value
-}
-
 async function loadHomeData(): Promise<void> {
   const tasks: Promise<void>[] = []
-
-  tasks.push(
-    paymentAPI.getCheckoutInfo()
-      .then((response) => {
-        checkoutPlans.value = response.data?.plans || []
-      })
-      .catch(() => {
-        checkoutPlans.value = []
-      })
-  )
 
   tasks.push(
     announcementsAPI.list(false)
@@ -828,57 +572,13 @@ async function loadHomeData(): Promise<void> {
           dashboardStats.value = null
         })
     )
-
-    tasks.push(
-      paymentAPI.getMyOrders({ page: 1, page_size: 3 })
-        .then((response) => {
-          latestOrders.value = response.data?.items || []
-        })
-        .catch(() => {
-          latestOrders.value = []
-        })
-    )
-
-    tasks.push(
-      keysAPI.list(1, 3, { sort_by: 'created_at', sort_order: 'desc' })
-        .then((response) => {
-          latestKeys.value = response.items || []
-        })
-        .catch(() => {
-          latestKeys.value = []
-        })
-    )
-
-    if (appStore.cachedPublicSettings?.affiliate_enabled) {
-      tasks.push(
-        userAPI.getAffiliateDetail()
-          .then((detail) => {
-            affiliateDetail.value = detail
-          })
-          .catch(() => {
-            affiliateDetail.value = null
-          })
-      )
-    }
-  }
-
-  if (isAdmin.value) {
-    tasks.push(
-      dashboardAPI.getUserSpendingRanking({ limit: 5 })
-        .then((response) => {
-          rankingItems.value = response.ranking || []
-        })
-        .catch(() => {
-          rankingItems.value = []
-        })
-    )
   }
 
   await Promise.all(tasks)
 }
 
 onMounted(async () => {
-  authStore.checkAuth()
+  localStorage.setItem(STYLE_STORAGE_KEY, styleMode.value)
   if (!appStore.publicSettingsLoaded) {
     await appStore.fetchPublicSettings()
   }
@@ -887,7 +587,7 @@ onMounted(async () => {
 </script>
 
 <style scoped>
-.allincode-home {
+.allcancode-home {
   font-family: "PingFang SC", "Microsoft YaHei", "HarmonyOS Sans", Arial, sans-serif;
 }
 
@@ -963,10 +663,37 @@ onMounted(async () => {
 }
 
 .brand {
+  display: inline-flex;
+  min-width: 0;
+  align-items: center;
+  gap: 12px;
   color: #fff;
   font-size: 28px;
   font-weight: 850;
   letter-spacing: -0.03em;
+}
+
+.brand > span:last-child {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.brand-mark {
+  display: inline-flex;
+  width: 42px;
+  height: 42px;
+  flex: 0 0 auto;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  border: 1px solid rgba(46, 195, 83, 0.65);
+  border-radius: 8px;
+  background: linear-gradient(135deg, #0ad840, #1f95ac);
+  color: #001a06;
+  font-size: 20px;
+  font-weight: 950;
+  box-shadow: 0 0 24px rgba(7, 184, 50, 0.2);
 }
 
 .nav-tabs {
@@ -982,8 +709,11 @@ onMounted(async () => {
   display: none;
 }
 
-.nav-tabs button {
+.nav-tab {
+  display: inline-flex;
   cursor: pointer;
+  align-items: center;
+  justify-content: center;
   white-space: nowrap;
   border: 1px solid transparent;
   border-radius: 999px;
@@ -995,8 +725,8 @@ onMounted(async () => {
   transition: all 0.2s ease;
 }
 
-.nav-tabs button:hover,
-.nav-tabs button.active {
+.nav-tab:hover,
+.nav-tab.active {
   color: #fff;
   border-color: rgba(7, 184, 50, 0.75);
   background: rgba(7, 184, 50, 0.18);
@@ -1007,6 +737,26 @@ onMounted(async () => {
   display: flex;
   align-items: center;
   gap: 12px;
+}
+
+.style-toggle {
+  display: inline-flex;
+  width: 38px;
+  height: 38px;
+  cursor: pointer;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid rgba(255, 255, 255, 0.42);
+  border-radius: 999px;
+  background: rgba(98, 98, 98, 0.3);
+  color: rgba(255, 255, 255, 0.9);
+  backdrop-filter: blur(24px) saturate(120%);
+  transition: background 0.2s ease, border-color 0.2s ease, color 0.2s ease;
+}
+
+.style-toggle:hover {
+  border-color: rgba(255, 255, 255, 0.85);
+  background: rgba(255, 255, 255, 0.1);
 }
 
 .login-btn {
@@ -1204,11 +954,60 @@ onMounted(async () => {
 }
 
 .hero-desc {
-  margin-bottom: 44px;
+  margin-bottom: 24px;
   color: rgba(255, 255, 255, 0.86);
   font-size: 17px;
   font-weight: 700;
   letter-spacing: 0.04em;
+}
+
+.signup-bonus {
+  display: inline-grid;
+  min-width: min(100%, 520px);
+  grid-template-columns: auto 1fr;
+  align-items: center;
+  gap: 6px 14px;
+  margin-bottom: 34px;
+  border: 1px solid rgba(246, 200, 95, 0.42);
+  border-radius: 18px;
+  background:
+    linear-gradient(135deg, rgba(246, 200, 95, 0.18), rgba(7, 184, 50, 0.1)),
+    rgba(0, 0, 0, 0.32);
+  padding: 16px 20px;
+  box-shadow:
+    0 20px 60px rgba(246, 200, 95, 0.12),
+    inset 0 1px rgba(255, 255, 255, 0.18);
+  text-align: left;
+  backdrop-filter: blur(18px);
+}
+
+.signup-bonus span {
+  grid-row: span 2;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 999px;
+  background: #f6c85f;
+  color: #1c1200;
+  padding: 8px 12px;
+  font-size: 12px;
+  font-weight: 950;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.signup-bonus strong {
+  color: #fff;
+  font-size: clamp(20px, 3vw, 32px);
+  font-weight: 950;
+  letter-spacing: -0.02em;
+  line-height: 1.05;
+}
+
+.signup-bonus small {
+  color: rgba(255, 255, 255, 0.68);
+  font-size: 13px;
+  font-weight: 750;
 }
 
 .hero-buttons {
@@ -1280,7 +1079,6 @@ onMounted(async () => {
 }
 
 .stat-card,
-.preview-card,
 .reliability-card,
 .testimonial-card {
   background: rgba(98, 98, 98, 0.24);
@@ -1474,7 +1272,6 @@ onMounted(async () => {
   color: #0ad840;
 }
 
-.business-section,
 .reliability-section,
 .quickstart-section,
 .testimonial-section {
@@ -1483,12 +1280,6 @@ onMounted(async () => {
   padding: 118px 40px;
 }
 
-.section-heading {
-  margin-bottom: 40px;
-}
-
-.section-heading p,
-.feature-kicker,
 .code-copy p,
 .final-cta p {
   color: #0ad840;
@@ -1498,7 +1289,6 @@ onMounted(async () => {
   text-transform: uppercase;
 }
 
-.section-heading h2,
 .center-heading h2,
 .code-copy h2,
 .final-cta h2 {
@@ -1510,7 +1300,6 @@ onMounted(async () => {
   line-height: 1.08;
 }
 
-.section-heading span,
 .center-heading p,
 .code-copy span,
 .final-cta span {
@@ -1521,47 +1310,6 @@ onMounted(async () => {
   font-size: 18px;
   font-weight: 600;
   line-height: 1.8;
-}
-
-.business-panel {
-  display: grid;
-  grid-template-columns: minmax(0, 0.8fr) minmax(0, 1.2fr);
-  gap: 24px;
-}
-
-.business-main {
-  min-height: 430px;
-  border-radius: 22px;
-  border: 1px solid rgba(255, 255, 255, 0.22);
-  background:
-    radial-gradient(circle at 100% 0%, rgba(7, 184, 50, 0.18), transparent 32%),
-    rgba(23, 23, 23, 0.92);
-  padding: 46px;
-  box-shadow: inset 0 1px rgba(255, 255, 255, 0.28);
-}
-
-.business-main h3 {
-  margin-top: 22px;
-  color: #fff;
-  font-size: clamp(34px, 4vw, 54px);
-  font-weight: 850;
-  letter-spacing: -0.04em;
-  line-height: 1.08;
-}
-
-.business-main > p:not(.feature-kicker) {
-  margin-top: 24px;
-  color: rgba(255, 255, 255, 0.62);
-  font-size: 18px;
-  font-weight: 650;
-  line-height: 1.8;
-}
-
-.feature-actions {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 12px;
-  margin-top: 42px;
 }
 
 .panel-primary,
@@ -1587,59 +1335,6 @@ onMounted(async () => {
   color: rgba(255, 255, 255, 0.8);
   border: 1px solid rgba(255, 255, 255, 0.22);
   background: rgba(255, 255, 255, 0.06);
-}
-
-.business-preview {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 18px;
-}
-
-.preview-card {
-  position: relative;
-  min-height: 210px;
-  overflow: hidden;
-  border-radius: 22px;
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  padding: 32px;
-}
-
-.preview-card::after {
-  position: absolute;
-  right: -28px;
-  bottom: -28px;
-  width: 110px;
-  height: 110px;
-  border-radius: 36px;
-  border: 1px solid rgba(7, 184, 50, 0.34);
-  content: "";
-  transform: rotate(18deg);
-}
-
-.preview-card span {
-  color: #0ad840;
-  font-size: 13px;
-  font-weight: 850;
-  letter-spacing: 0.15em;
-  text-transform: uppercase;
-}
-
-.preview-card strong {
-  display: block;
-  margin-top: 28px;
-  color: #fff;
-  font-size: 28px;
-  font-weight: 850;
-  letter-spacing: -0.03em;
-  line-height: 1.18;
-}
-
-.preview-card p {
-  margin-top: 18px;
-  color: rgba(255, 255, 255, 0.58);
-  font-size: 16px;
-  font-weight: 650;
-  line-height: 1.7;
 }
 
 .center-heading {
@@ -2065,6 +1760,301 @@ onMounted(async () => {
   max-width: 820px;
 }
 
+.public-style-light {
+  background: #f7f7f4;
+  color: #101412;
+}
+
+.public-style-light .announcement,
+.public-style-light .top-nav {
+  border-bottom-color: rgba(8, 123, 47, 0.18);
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.92), rgba(239, 250, 241, 0.9)),
+    rgba(247, 247, 244, 0.96);
+  box-shadow: 0 1px 0 rgba(15, 127, 120, 0.08);
+}
+
+.public-style-light .announcement-text,
+.public-style-light .announcement-arrow,
+.public-style-light .hero-subtitle,
+.public-style-light .hero-desc,
+.public-style-light .btn-ghost,
+.public-style-light .panel-ghost,
+.public-style-light .strip-item {
+  color: rgba(6, 58, 22, 0.76);
+}
+
+.public-style-light .brand,
+.public-style-light .hero-main,
+.public-style-light .hero-tagline,
+.public-style-light .center-heading h2,
+.public-style-light .code-copy h2,
+.public-style-light .final-cta h2,
+.public-style-light .card-copy h3,
+.public-style-light .step-card h3,
+.public-style-light .testimonial-card strong {
+  color: #101412;
+  background: none;
+  -webkit-text-fill-color: currentColor;
+}
+
+.public-style-light .brand-mark {
+  border-color: rgba(8, 123, 47, 0.38);
+  background: linear-gradient(135deg, #0fbf4a 0%, #58c7b1 58%, #f2c45a 100%);
+  box-shadow:
+    0 12px 30px rgba(8, 123, 47, 0.16),
+    inset 0 1px rgba(255, 255, 255, 0.55);
+}
+
+.public-style-light .nav-tab {
+  border-color: rgba(8, 123, 47, 0.1);
+  background: rgba(255, 255, 255, 0.34);
+  color: rgba(6, 58, 22, 0.68);
+}
+
+.public-style-light .nav-tab:hover,
+.public-style-light .nav-tab.active {
+  border-color: rgba(8, 123, 47, 0.42);
+  background: linear-gradient(180deg, rgba(232, 248, 236, 0.98), rgba(211, 241, 221, 0.82));
+  color: #063a16;
+  box-shadow: 0 10px 24px rgba(8, 123, 47, 0.12);
+}
+
+.public-style-light .style-toggle,
+.public-style-light .login-btn {
+  border-color: rgba(8, 123, 47, 0.32);
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.98), rgba(232, 248, 236, 0.84));
+  color: #063a16;
+  box-shadow: 0 8px 24px rgba(8, 123, 47, 0.1);
+}
+
+.public-style-light .style-toggle:hover,
+.public-style-light .login-btn:hover {
+  border-color: rgba(15, 127, 120, 0.5);
+  background: linear-gradient(180deg, #fff, rgba(230, 247, 244, 0.92));
+  box-shadow: 0 12px 28px rgba(15, 127, 120, 0.12);
+}
+
+.public-style-light .hero,
+.public-style-light .hero-video {
+  background:
+    radial-gradient(circle at 50% 38%, rgba(7, 184, 50, 0.14), transparent 24%),
+    radial-gradient(circle at 25% 78%, rgba(31, 149, 172, 0.1), transparent 20%),
+    linear-gradient(180deg, #f7f7f4 0%, #eef7f0 58%, #f7f7f4 100%);
+}
+
+.public-style-light .hero-overlay {
+  background:
+    linear-gradient(180deg, rgba(247, 247, 244, 0.2) 0%, rgba(247, 247, 244, 0.64) 72%, #f7f7f4 100%),
+    radial-gradient(circle at 50% 50%, transparent 0%, rgba(255, 255, 255, 0.34) 48%, rgba(247, 247, 244, 0.9) 100%);
+}
+
+.public-style-light .hero-overlay::after {
+  opacity: 0.09;
+  background-image: repeating-linear-gradient(90deg, transparent 0, transparent 3px, rgba(6, 58, 22, 0.18) 4px);
+  mix-blend-mode: multiply;
+}
+
+.public-style-light .light-wall span {
+  background:
+    linear-gradient(90deg, rgba(8, 123, 47, 0), rgba(8, 123, 47, 0.72), rgba(15, 127, 120, 0.46), rgba(184, 121, 20, 0.34), rgba(8, 123, 47, 0));
+  box-shadow:
+    0 0 14px rgba(8, 123, 47, 0.18),
+    10px 0 0 rgba(15, 127, 120, 0.1),
+    22px 0 0 rgba(184, 121, 20, 0.1);
+}
+
+.public-style-light .pixel-mark i {
+  background: #0a8f36;
+  box-shadow: 0 0 12px rgba(8, 123, 47, 0.32);
+}
+
+.public-style-light .pixel-mark i:nth-child(5) {
+  background: #0f7f78;
+}
+
+.public-style-light .btn-primary,
+.public-style-light .panel-primary {
+  border-color: #087b2f;
+  background: linear-gradient(180deg, #0a8f36 0%, #066828 100%);
+  color: #fff;
+  box-shadow:
+    0 14px 34px rgba(8, 123, 47, 0.22),
+    inset 0 1px rgba(255, 255, 255, 0.24);
+}
+
+.public-style-light .btn-ghost,
+.public-style-light .panel-ghost,
+.public-style-light .view-all-models {
+  border-color: rgba(15, 127, 120, 0.32);
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.98), rgba(230, 247, 244, 0.84));
+  color: #0c514c;
+  box-shadow: 0 10px 26px rgba(15, 127, 120, 0.1);
+}
+
+.public-style-light .arrow-stack {
+  color: #f6c85f;
+}
+
+.public-style-light .green-dot {
+  background: #0a8f36;
+  box-shadow:
+    0 0 0 4px rgba(10, 143, 54, 0.12),
+    0 0 16px rgba(10, 143, 54, 0.36);
+}
+
+.public-style-light .signup-bonus {
+  border-color: rgba(184, 121, 20, 0.34);
+  background:
+    linear-gradient(135deg, rgba(255, 247, 223, 0.96), rgba(232, 248, 236, 0.92)),
+    rgba(255, 255, 255, 0.9);
+  box-shadow:
+    0 18px 50px rgba(184, 121, 20, 0.1),
+    inset 0 1px rgba(255, 255, 255, 0.86);
+}
+
+.public-style-light .signup-bonus span {
+  background: #0a8f36;
+  color: #fff;
+}
+
+.public-style-light .signup-bonus strong {
+  color: #101412;
+}
+
+.public-style-light .signup-bonus small {
+  color: #264b32;
+}
+
+.public-style-light .stat-card,
+.public-style-light .reliability-card,
+.public-style-light .testimonial-card,
+.public-style-light .step-card {
+  border: 1px solid rgba(8, 123, 47, 0.2);
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.94), rgba(239, 250, 241, 0.78));
+  box-shadow: 0 18px 60px rgba(6, 58, 22, 0.1);
+}
+
+.public-style-light .stat-symbol span,
+.public-style-light .tech-visual span {
+  border-color: rgba(8, 123, 47, 0.36);
+  box-shadow: 0 0 18px rgba(8, 123, 47, 0.12);
+}
+
+.public-style-light .symbol-atom span:nth-child(3),
+.public-style-light .visual-api span {
+  background: rgba(8, 123, 47, 0.14);
+}
+
+.public-style-light .stat-value,
+.public-style-light .card-copy :deep(strong),
+.public-style-light .price-box strong {
+  color: #101412;
+}
+
+.public-style-light .stat-label,
+.public-style-light .center-heading p,
+.public-style-light .code-copy span,
+.public-style-light .final-cta span,
+.public-style-light .card-copy p,
+.public-style-light .step-card p,
+.public-style-light .testimonial-card p,
+.public-style-light .testimonial-card span {
+  color: #264b32;
+}
+
+.public-style-light .model-strip,
+.public-style-light .popular-section {
+  background: #f7f7f4;
+}
+
+.public-style-light .model-strip {
+  border-top-color: rgba(8, 123, 47, 0.18);
+  border-bottom-color: rgba(15, 127, 120, 0.16);
+  background: rgba(232, 248, 236, 0.74);
+}
+
+.public-style-light .strip-item {
+  border-color: rgba(15, 127, 120, 0.22);
+  background: rgba(255, 255, 255, 0.82);
+  color: #0c514c;
+  box-shadow: 0 8px 22px rgba(15, 127, 120, 0.08);
+}
+
+.public-style-light .strip-icon,
+.public-style-light .code-copy p,
+.public-style-light .final-cta p {
+  color: #087b2f;
+}
+
+.public-style-light .code-window {
+  border-color: rgba(15, 127, 120, 0.24);
+  background:
+    radial-gradient(circle at 100% 0%, rgba(8, 123, 47, 0.13), transparent 32%),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.94), rgba(230, 247, 244, 0.78));
+  box-shadow: 0 18px 60px rgba(6, 58, 22, 0.1);
+}
+
+.public-style-light .popular-inner {
+  background: linear-gradient(180deg, #fbfbf7 0%, #edf8ef 100%);
+  box-shadow: inset 0 1px rgba(255, 255, 255, 0.82);
+}
+
+.public-style-light .popular-heading h2,
+.public-style-light .model-card h3 {
+  color: #101412;
+}
+
+.public-style-light .popular-heading p,
+.public-style-light .model-card p,
+.public-style-light .price-box {
+  color: rgba(6, 58, 22, 0.62);
+}
+
+.public-style-light .model-card {
+  border-color: rgba(8, 123, 47, 0.18);
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.96), rgba(238, 248, 241, 0.8));
+  box-shadow: 0 18px 50px rgba(6, 58, 22, 0.08);
+}
+
+.public-style-light .model-logo {
+  color: #087b2f;
+}
+
+.public-style-light .model-badge {
+  border-color: rgba(184, 121, 20, 0.26);
+  background: #fff7df;
+  color: #9a5f05;
+}
+
+.public-style-light .price-box {
+  border-color: rgba(15, 127, 120, 0.22);
+  background: rgba(255, 255, 255, 0.86);
+}
+
+.public-style-light .model-tags span {
+  border-color: rgba(8, 123, 47, 0.2);
+  background: #f2fbf4;
+  color: #0b5f2a;
+}
+
+.public-style-light .step-card span {
+  background: #0a8f36;
+  color: #fff;
+  box-shadow: 0 0 0 5px rgba(10, 143, 54, 0.12);
+}
+
+.public-style-light .code-window code {
+  color: #15381f;
+}
+
+.public-style-light .timeline-line {
+  background:
+    linear-gradient(90deg, rgba(7, 184, 50, 0), #07b832, rgba(7, 184, 50, 0)),
+    repeating-linear-gradient(90deg, transparent 0 28px, rgba(6, 58, 22, 0.24) 28px 30px);
+  box-shadow: 0 0 28px rgba(8, 123, 47, 0.18);
+}
+
 @keyframes lightPulse {
   0%,
   100% {
@@ -2099,14 +2089,12 @@ onMounted(async () => {
   }
 
   .stats-grid,
-  .business-panel,
   .reliability-grid,
   .code-section,
   .testimonial-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
-  .business-preview,
   .model-card-grid,
   .timeline {
     grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -2145,7 +2133,6 @@ onMounted(async () => {
   }
 
   .hero-buttons,
-  .feature-actions,
   .final-cta {
     flex-direction: column;
     align-items: stretch;
@@ -2160,8 +2147,6 @@ onMounted(async () => {
   }
 
   .stats-grid,
-  .business-panel,
-  .business-preview,
   .reliability-grid,
   .model-card-grid,
   .timeline,
@@ -2171,7 +2156,6 @@ onMounted(async () => {
   }
 
   .stats-grid,
-  .business-section,
   .reliability-section,
   .quickstart-section,
   .testimonial-section,
@@ -2181,7 +2165,6 @@ onMounted(async () => {
     padding-right: 20px;
   }
 
-  .business-section,
   .reliability-section,
   .quickstart-section,
   .testimonial-section {
@@ -2189,8 +2172,6 @@ onMounted(async () => {
     padding-bottom: 80px;
   }
 
-  .business-main,
-  .preview-card,
   .reliability-card {
     padding: 28px;
   }

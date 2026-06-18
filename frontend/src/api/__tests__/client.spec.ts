@@ -12,6 +12,7 @@ describe('API Client', () => {
 
   beforeEach(async () => {
     localStorage.clear()
+    sessionStorage.clear()
     // 每次测试重新导入以获取干净的模块状态
     vi.resetModules()
     const mod = await import('@/api/client')
@@ -224,6 +225,190 @@ describe('API Client', () => {
       expect(localStorage.getItem('auth_token')).toBeNull()
 
       // 恢复 location
+      Object.defineProperty(window, 'location', {
+        value: originalLocation,
+        writable: true,
+      })
+    })
+
+    it('匿名请求 401 不强制跳转登录', async () => {
+      const originalLocation = window.location
+      const locationMock = { ...originalLocation, pathname: '/home', href: '/home' }
+      Object.defineProperty(window, 'location', {
+        value: locationMock,
+        writable: true,
+      })
+
+      const adapter = vi.fn().mockRejectedValue({
+        response: {
+          status: 401,
+          data: { code: 'UNAUTHORIZED', message: 'Unauthorized' },
+        },
+        config: {
+          url: '/protected-preview',
+          headers: {},
+        },
+        code: 'ERR_BAD_REQUEST',
+      })
+      apiClient.defaults.adapter = adapter
+
+      await expect(apiClient.get('/protected-preview')).rejects.toEqual(
+        expect.objectContaining({
+          status: 401,
+          code: 'UNAUTHORIZED',
+        })
+      )
+
+      expect(localStorage.getItem('auth_token')).toBeNull()
+      expect(sessionStorage.getItem('auth_expired')).toBeNull()
+      expect(window.location.href).toBe('/home')
+
+      Object.defineProperty(window, 'location', {
+        value: originalLocation,
+        writable: true,
+      })
+    })
+
+    it('公开页 refresh_token 失效时只清登录态不跳转', async () => {
+      localStorage.setItem('auth_token', 'expired-token')
+      localStorage.setItem('refresh_token', 'expired-refresh-token')
+      localStorage.setItem('auth_user', JSON.stringify({ id: 1, email: 'a@example.com' }))
+
+      const originalLocation = window.location
+      const locationMock = { ...originalLocation, pathname: '/home', href: '/home' }
+      Object.defineProperty(window, 'location', {
+        value: locationMock,
+        writable: true,
+      })
+
+      vi.spyOn(axios, 'post').mockRejectedValueOnce({
+        response: {
+          status: 401,
+          data: { code: 'INVALID_REFRESH_TOKEN', message: 'Invalid refresh token' },
+        },
+      })
+
+      const adapter = vi.fn().mockRejectedValue({
+        response: {
+          status: 401,
+          data: { code: 'TOKEN_EXPIRED', message: 'Token expired' },
+        },
+        config: {
+          url: '/auth/me',
+          headers: { Authorization: 'Bearer expired-token' },
+        },
+        code: 'ERR_BAD_REQUEST',
+      })
+      apiClient.defaults.adapter = adapter
+
+      await expect(apiClient.get('/auth/me')).rejects.toEqual(
+        expect.objectContaining({
+          status: 401,
+          code: 'TOKEN_REFRESH_FAILED',
+        })
+      )
+
+      expect(localStorage.getItem('auth_token')).toBeNull()
+      expect(localStorage.getItem('refresh_token')).toBeNull()
+      expect(sessionStorage.getItem('auth_expired')).toBe('1')
+      expect(window.location.href).toBe('/home')
+
+      Object.defineProperty(window, 'location', {
+        value: originalLocation,
+        writable: true,
+      })
+    })
+
+    it('/allcancode 公开页 refresh_token 失效时不跳转', async () => {
+      localStorage.setItem('auth_token', 'expired-token')
+      localStorage.setItem('refresh_token', 'expired-refresh-token')
+      localStorage.setItem('auth_user', JSON.stringify({ id: 1, email: 'a@example.com' }))
+
+      const originalLocation = window.location
+      const locationMock = { ...originalLocation, pathname: '/allcancode/home', href: '/allcancode/home' }
+      Object.defineProperty(window, 'location', {
+        value: locationMock,
+        writable: true,
+      })
+
+      vi.spyOn(axios, 'post').mockRejectedValueOnce({
+        response: {
+          status: 401,
+          data: { code: 'INVALID_REFRESH_TOKEN', message: 'Invalid refresh token' },
+        },
+      })
+
+      const adapter = vi.fn().mockRejectedValue({
+        response: {
+          status: 401,
+          data: { code: 'TOKEN_EXPIRED', message: 'Token expired' },
+        },
+        config: {
+          url: '/auth/me',
+          headers: { Authorization: 'Bearer expired-token' },
+        },
+        code: 'ERR_BAD_REQUEST',
+      })
+      apiClient.defaults.adapter = adapter
+
+      await expect(apiClient.get('/auth/me')).rejects.toEqual(
+        expect.objectContaining({
+          status: 401,
+          code: 'TOKEN_REFRESH_FAILED',
+        })
+      )
+
+      expect(localStorage.getItem('auth_token')).toBeNull()
+      expect(window.location.href).toBe('/allcancode/home')
+
+      Object.defineProperty(window, 'location', {
+        value: originalLocation,
+        writable: true,
+      })
+    })
+
+    it('/allcancode 受保护页 refresh_token 失效时跳到带前缀登录页', async () => {
+      localStorage.setItem('auth_token', 'expired-token')
+      localStorage.setItem('refresh_token', 'expired-refresh-token')
+      localStorage.setItem('auth_user', JSON.stringify({ id: 1, email: 'a@example.com' }))
+
+      const originalLocation = window.location
+      const locationMock = { ...originalLocation, pathname: '/allcancode/dashboard', href: '/allcancode/dashboard' }
+      Object.defineProperty(window, 'location', {
+        value: locationMock,
+        writable: true,
+      })
+
+      vi.spyOn(axios, 'post').mockRejectedValueOnce({
+        response: {
+          status: 401,
+          data: { code: 'INVALID_REFRESH_TOKEN', message: 'Invalid refresh token' },
+        },
+      })
+
+      const adapter = vi.fn().mockRejectedValue({
+        response: {
+          status: 401,
+          data: { code: 'TOKEN_EXPIRED', message: 'Token expired' },
+        },
+        config: {
+          url: '/auth/me',
+          headers: { Authorization: 'Bearer expired-token' },
+        },
+        code: 'ERR_BAD_REQUEST',
+      })
+      apiClient.defaults.adapter = adapter
+
+      await expect(apiClient.get('/auth/me')).rejects.toEqual(
+        expect.objectContaining({
+          status: 401,
+          code: 'TOKEN_REFRESH_FAILED',
+        })
+      )
+
+      expect(localStorage.getItem('auth_token')).toBeNull()
+      expect(window.location.href).toBe('/allcancode/login')
+
       Object.defineProperty(window, 'location', {
         value: originalLocation,
         writable: true,

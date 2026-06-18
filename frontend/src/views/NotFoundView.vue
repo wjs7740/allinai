@@ -57,9 +57,9 @@
           <Icon name="arrowLeft" size="md" class="mr-2" />
           Go Back
         </button>
-        <router-link to="/dashboard" class="btn btn-primary">
+        <router-link :to="primaryPath" class="btn btn-primary">
           <Icon name="home" size="md" class="mr-2" />
-          Go to Dashboard
+          {{ primaryLabel }}
         </router-link>
       </div>
 
@@ -81,9 +81,13 @@
 import { useI18n } from 'vue-i18n'
 import { useRouter } from 'vue-router'
 import Icon from '@/components/icons/Icon.vue'
+import { useAuthStore } from '@/stores/auth'
 
 const { t } = useI18n()
 const router = useRouter()
+const authStore = useAuthStore()
+const primaryPath = authStore.isAuthenticated ? '/dashboard' : '/home'
+const primaryLabel = authStore.isAuthenticated ? 'Go to Dashboard' : 'Go Home'
 
 function goBack(): void {
   router.back()

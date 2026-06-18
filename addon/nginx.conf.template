@@ -6,6 +6,7 @@ server {
     resolver ${NGINX_RESOLVER} valid=30s ipv6=off;
 
     set $sub2api_upstream ${SUB2API_BASE_URL};
+    set $ranking_api_upstream ${RANKING_API_BASE_URL};
 
     client_max_body_size ${CLIENT_MAX_BODY_SIZE};
 
@@ -18,7 +19,7 @@ server {
     proxy_set_header Connection $connection_upgrade;
 
     location = / {
-        try_files /allincode/index.html =404;
+        try_files /allcancode/index.html =404;
     }
 
     location = /home {
@@ -26,12 +27,41 @@ server {
     }
 
     location = /home/ {
-        try_files /allincode/index.html =404;
+        try_files /allcancode/index.html =404;
+    }
+
+    location = /ranking {
+        try_files /allcancode/index.html =404;
+    }
+
+    location = /ranking/ {
+        try_files /allcancode/index.html =404;
+    }
+
+    location ~ ^/(monitor|key-usage|login|register|email-verify|forgot-password|reset-password)/?$ {
+        try_files /allcancode/index.html =404;
+    }
+
+    location ^~ /allcancode/ {
+        alias /usr/share/nginx/html/allcancode/;
+        try_files $uri $uri/ /allcancode/index.html;
+    }
+
+    location = /api/v1/public/storefront/ranking {
+        proxy_pass $ranking_api_upstream/public/storefront/ranking$is_args$args;
+    }
+
+    location = /api/v1/channel-monitors {
+        proxy_pass $ranking_api_upstream/public/channel-monitors$is_args$args;
+    }
+
+    location ~ ^/api/v1/channel-monitors/([0-9]+)/status$ {
+        proxy_pass $ranking_api_upstream/public/channel-monitors/$1/status$is_args$args;
     }
 
     location ^~ /allincode/ {
-        alias /usr/share/nginx/html/allincode/;
-        try_files $uri $uri/ /allincode/index.html;
+        absolute_redirect off;
+        return 301 /allcancode/;
     }
 
     location / {

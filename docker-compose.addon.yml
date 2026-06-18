@@ -10,7 +10,26 @@ services:
       - "${ALLINCODE_PORT:-3000}:80"
     environment:
       SUB2API_BASE_URL: "${SUB2API_BASE_URL:-http://host.docker.internal:8080}"
+      RANKING_API_BASE_URL: "${RANKING_API_BASE_URL:-http://ranking-api:8081}"
       CLIENT_MAX_BODY_SIZE: "${CLIENT_MAX_BODY_SIZE:-50m}"
       NGINX_RESOLVER: "${NGINX_RESOLVER:-127.0.0.11}"
     extra_hosts:
       - "host.docker.internal:host-gateway"
+    depends_on:
+      - ranking-api
+
+  ranking-api:
+    build:
+      context: .
+      dockerfile: addon/ranking-api/Dockerfile
+    image: allcancode/ranking-api:local
+    container_name: allcancode-ranking-api
+    restart: unless-stopped
+    environment:
+      PORT: "8081"
+      POSTGRES_HOST: "${RANKING_POSTGRES_HOST:-postgres}"
+      POSTGRES_PORT: "${RANKING_POSTGRES_PORT:-5432}"
+      POSTGRES_USER: "${RANKING_POSTGRES_USER:-sub2api}"
+      POSTGRES_PASSWORD: "${RANKING_POSTGRES_PASSWORD:-}"
+      POSTGRES_DB: "${RANKING_POSTGRES_DB:-sub2api}"
+      POSTGRES_SSLMODE: "${POSTGRES_SSLMODE:-disable}"
