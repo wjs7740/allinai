@@ -1,16 +1,5 @@
 <template>
   <div :class="['allcancode-home min-h-screen bg-black text-white', homeStyleClass]">
-    <header class="announcement" @click="scrollToSection('pricing')">
-      <div class="pixel-row pixel-row-left" aria-hidden="true">
-        <span v-for="color in pixelColors" :key="`left-${color}`" :style="{ background: color }"></span>
-      </div>
-      <span class="announcement-text">{{ topAnnouncement }}</span>
-      <span class="announcement-arrow">›</span>
-      <div class="pixel-row pixel-row-right" aria-hidden="true">
-        <span v-for="color in [...pixelColors].reverse()" :key="`right-${color}`" :style="{ background: color }"></span>
-      </div>
-    </header>
-
     <nav class="top-nav">
       <div class="nav-inner">
         <RouterLink to="/home" class="brand">
@@ -99,13 +88,6 @@
             </span>
             <span class="hero-main">{{ homeCopy.heroTitleMain }}</span>
           </h1>
-
-          <p class="hero-subtitle">
-            {{ homeCopy.heroSubtitle }}
-          </p>
-          <p class="hero-desc">
-            {{ homeCopy.heroDesc }}
-          </p>
 
           <div class="signup-bonus">
             <span>{{ homeCopy.signupBonusKicker }}</span>
@@ -270,8 +252,6 @@ import { useAuthStore } from '@/stores/auth'
 import { useAppStore } from '@/stores/app'
 import usageAPI, { type UserDashboardStats } from '@/api/usage'
 import channelMonitorUserAPI, { type UserMonitorView } from '@/api/channelMonitor'
-import announcementsAPI from '@/api/announcements'
-import type { UserAnnouncement } from '@/types'
 
 const authStore = useAuthStore()
 const appStore = useAppStore()
@@ -284,15 +264,12 @@ const SHOP_URL = 'https://shop.allincode.top'
 const styleMode = ref<'dark' | 'light'>(readStyleMode())
 const dashboardStats = ref<UserDashboardStats | null>(null)
 const monitorCards = ref<UserMonitorView[]>([])
-const announcementsPreview = ref<UserAnnouncement[]>([])
 
 const isAuthenticated = computed(() => authStore.isAuthenticated)
 const isAdmin = computed(() => authStore.isAdmin)
 const dashboardPath = computed(() => (isAdmin.value ? '/admin/dashboard' : '/dashboard'))
 const isZh = computed(() => locale.value.startsWith('zh'))
 const homeStyleClass = computed(() => (styleMode.value === 'light' ? 'public-style-light' : 'public-style-dark'))
-
-const pixelColors = ['#2EC353', '#19A63C', '#078C28', '#008020', '#00731C', '#006619', '#004D13', '#00330D', '#001A06', '#000000']
 
 const lightBars = Array.from({ length: 76 }, (_, index) => ({
   id: index,
@@ -303,13 +280,6 @@ const lightBars = Array.from({ length: 76 }, (_, index) => ({
   opacity: 0.18 + ((index % 6) * 0.08),
 }))
 
-const topAnnouncement = computed(() => {
-  if (announcementsPreview.value.length) return announcementsPreview.value[0].title
-  return isZh.value
-    ? 'AllCanCode 现在用一个统一 API 接入 OpenAI、Claude 和 Gemini'
-    : 'AllCanCode now routes OpenAI, Claude, and Gemini through one unified API'
-})
-
 const primaryCta = computed(() => ({
   label: isAuthenticated.value ? t('home.dashboard') : t('home.getStarted'),
   to: isAuthenticated.value ? dashboardPath.value : '/register',
@@ -319,8 +289,6 @@ const homeCopy = computed(() => isZh.value ? {
   heroKicker: `${brandName.value} AI 网关`,
   heroTitleTop: '一个 Key 接入',
   heroTitleMain: 'OpenAI、Claude 与 Gemini',
-  heroSubtitle: '[ OpenAI · Claude · Gemini · GPT-5.5 · Claude Opus 4.8 · Gemini 3 Pro ]',
-  heroDesc: '兼容 OpenAI SDK · 统一计费 · 按量付费 · 失败请求不计费',
   signupBonusKicker: '新用户福利',
   signupBonusTitle: '注册即送 10 刀额度',
   signupBonusText: '完成注册后可直接用于模型调用测试',
@@ -349,8 +317,6 @@ const homeCopy = computed(() => isZh.value ? {
   heroKicker: `${brandName.value} AI Gateway`,
   heroTitleTop: 'One Key for',
   heroTitleMain: 'OpenAI, Claude & Gemini',
-  heroSubtitle: '[ OpenAI · Claude · Gemini · GPT-5.5 · Claude Opus 4.8 · Gemini 3 Pro ]',
-  heroDesc: 'OpenAI SDK compatible · Unified billing · Pay as you go · Failed requests are not charged',
   signupBonusKicker: 'New user bonus',
   signupBonusTitle: 'Sign up and get $10 credit',
   signupBonusText: 'Use it for model-call testing right after registration',
@@ -539,16 +505,6 @@ function formatLatency(value: number | null | undefined): string {
 
 async function loadHomeData(): Promise<void> {
   const tasks: Promise<void>[] = []
-
-  tasks.push(
-    announcementsAPI.list(false)
-      .then((items) => {
-        announcementsPreview.value = items.slice(0, 3)
-      })
-      .catch(() => {
-        announcementsPreview.value = []
-      })
-  )
 
   if (appStore.cachedPublicSettings?.channel_monitor_enabled !== false) {
     tasks.push(
@@ -780,7 +736,7 @@ onMounted(async () => {
 .hero {
   position: relative;
   display: flex;
-  min-height: calc(100svh - 124px);
+  min-height: calc(100svh - 72px);
   flex-direction: column;
   overflow: hidden;
   background: #000;

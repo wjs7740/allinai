@@ -681,9 +681,11 @@ onBeforeUnmount(() => {
 :global(.public-style-light) .summary-card,
 :global(.public-style-light) .ranking-panel,
 :global(.public-style-light) .mobile-row {
-  border-color: rgba(8, 123, 47, 0.2);
-  background: linear-gradient(180deg, rgba(255, 255, 255, 0.94), rgba(239, 250, 241, 0.78));
-  box-shadow: 0 18px 60px rgba(6, 58, 22, 0.1);
+  border-color: rgba(8, 123, 47, 0.34);
+  background: linear-gradient(180deg, #ffffff 0%, #f4fbf5 100%);
+  box-shadow:
+    0 18px 60px rgba(6, 58, 22, 0.13),
+    inset 0 1px rgba(255, 255, 255, 0.9);
 }
 
 :global(.public-style-light) .summary-card strong,
@@ -708,7 +710,20 @@ onBeforeUnmount(() => {
 :global(.public-style-light) .ranking-table th,
 :global(.public-style-light) .ranking-table td,
 :global(.public-style-light) .panel-foot {
-  border-color: rgba(8, 123, 47, 0.16);
+  border-color: rgba(8, 123, 47, 0.22);
+}
+
+:global(.public-style-light) .panel-head {
+  background: linear-gradient(180deg, #f0fbf2 0%, #ffffff 100%);
+}
+
+:global(.public-style-light) .ranking-table th {
+  background: #e7f5ea;
+  color: #174526;
+}
+
+:global(.public-style-light) .ranking-table td {
+  background: rgba(255, 255, 255, 0.72);
 }
 
 :global(.public-style-light) .segmented {
@@ -736,7 +751,11 @@ onBeforeUnmount(() => {
 }
 
 :global(.public-style-light) .ranking-table tbody tr:hover {
-  background: rgba(232, 248, 236, 0.62);
+  background: #dff2e4;
+}
+
+:global(.public-style-light) .ranking-table tbody tr:hover td {
+  background: transparent;
 }
 
 :global(.public-style-light) .rank-first {
@@ -755,14 +774,14 @@ onBeforeUnmount(() => {
 }
 
 :global(.public-style-light) .rank-normal {
-  background: rgba(8, 123, 47, 0.1);
-  color: #0b5f2a;
+  background: #d9eee0;
+  color: #064c21;
 }
 
 :global(.public-style-light) .user-avatar {
-  border: 1px solid rgba(8, 123, 47, 0.2);
-  background: #e8f8ec;
-  color: #087b2f;
+  border: 1px solid rgba(8, 123, 47, 0.34);
+  background: #dff2e4;
+  color: #064c21;
 }
 
 :global(.public-style-light) .share-track {

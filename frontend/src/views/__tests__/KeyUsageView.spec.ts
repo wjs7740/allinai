@@ -4,10 +4,23 @@ import { nextTick } from 'vue'
 
 import KeyUsageView from '../KeyUsageView.vue'
 
-const { authState, appState, getMyOrders, getHistory, fetchPublicSettings } = vi.hoisted(() => ({
+const {
+  authState,
+  appState,
+  getMyOrders,
+  getHistory,
+  getStatus,
+  draw,
+  fetchPublicSettings,
+  showSuccess,
+  showError,
+  showInfo,
+  refreshUser,
+} = vi.hoisted(() => ({
   authState: {
     isAuthenticated: false,
     isAdmin: false,
+    refreshUser: vi.fn(),
   },
   appState: {
     cachedPublicSettings: {
@@ -21,7 +34,13 @@ const { authState, appState, getMyOrders, getHistory, fetchPublicSettings } = vi
   },
   getMyOrders: vi.fn(),
   getHistory: vi.fn(),
+  getStatus: vi.fn(),
+  draw: vi.fn(),
   fetchPublicSettings: vi.fn(),
+  showSuccess: vi.fn(),
+  showError: vi.fn(),
+  showInfo: vi.fn(),
+  refreshUser: vi.fn(),
 }))
 
 vi.mock('vue-i18n', async () => {
@@ -43,13 +62,19 @@ vi.mock('vue-i18n', async () => {
 })
 
 vi.mock('@/stores/auth', () => ({
-  useAuthStore: () => authState,
+  useAuthStore: () => ({
+    ...authState,
+    refreshUser,
+  }),
 }))
 
 vi.mock('@/stores/app', () => ({
   useAppStore: () => ({
     ...appState,
     fetchPublicSettings,
+    showSuccess,
+    showError,
+    showInfo,
   }),
 }))
 
@@ -65,13 +90,26 @@ vi.mock('@/api/redeem', () => ({
   },
 }))
 
+vi.mock('@/api/lottery', () => ({
+  default: {
+    getStatus,
+    draw,
+  },
+}))
+
 describe('KeyUsageView lottery activity', () => {
   beforeEach(() => {
     authState.isAuthenticated = false
     authState.isAdmin = false
     getMyOrders.mockReset()
     getHistory.mockReset()
+    getStatus.mockReset()
+    draw.mockReset()
     fetchPublicSettings.mockReset()
+    showSuccess.mockReset()
+    showError.mockReset()
+    showInfo.mockReset()
+    refreshUser.mockReset()
     vi.useFakeTimers()
   })
 
@@ -148,7 +186,17 @@ describe('KeyUsageView lottery activity', () => {
         used_at: '2026-06-03T00:00:00Z',
         created_at: '2026-06-03T00:00:00Z',
       },
+      {
+        id: 2,
+        code: 'BALANCE-100',
+        type: 'balance',
+        value: 100,
+        status: 'used',
+        used_at: '2026-06-04T00:00:00Z',
+        created_at: '2026-06-04T00:00:00Z',
+      },
     ])
+    getStatus.mockRejectedValue(new Error('status endpoint unavailable'))
 
     const wrapper = mount(KeyUsageView, {
       global: {
@@ -166,11 +214,81 @@ describe('KeyUsageView lottery activity', () => {
     expect(getHistory).toHaveBeenCalled()
 
     const text = wrapper.text()
-    expect(text).toContain('$250.00')
+    expect(text).toContain('$350.00')
     expect(text).toContain('已有抽奖资格')
-    expect(text).toContain('1 次')
+    expect(text).toContain('2 次')
     expect(text).toContain('order-250')
-    expect(text).toContain('LOTT...-001')
+    expect(text).toContain('BALA...-100')
+
+    wrapper.unmount()
+  })
+
+  it('shows a friendly message when the draw chance has already been used', async () => {
+    authState.isAuthenticated = true
+    getMyOrders.mockResolvedValue({ data: { items: [] } })
+    getHistory.mockResolvedValue([
+      {
+        id: 1,
+        code: 'LOTTERY-3-USED',
+        type: 'balance',
+        value: 21,
+        status: 'used',
+        used_at: '2026-06-20T07:34:00Z',
+        created_at: '2026-06-20T07:34:00Z',
+      },
+    ])
+    getStatus.mockResolvedValue({
+      data: {
+        threshold: 100,
+        min_prize: 5,
+        max_prize: 50,
+        qualifying_amount: 100,
+        qualifying_payment_amount: 0,
+        qualifying_redeem_amount: 100,
+        total_chances: 1,
+        used_chances: 0,
+        available_chances: 1,
+        reward_amount: 21,
+      },
+    })
+    draw.mockResolvedValue({
+      data: {
+        state: 'no_chance',
+        message: 'No lottery chance available.',
+        status: {
+          threshold: 100,
+          min_prize: 5,
+          max_prize: 50,
+          qualifying_amount: 100,
+          qualifying_payment_amount: 0,
+          qualifying_redeem_amount: 100,
+          total_chances: 1,
+          used_chances: 1,
+          available_chances: 0,
+          reward_amount: 21,
+        },
+      },
+    })
+
+    const wrapper = mount(KeyUsageView, {
+      global: {
+        stubs: {
+          RouterLink: { template: '<a><slot /></a>' },
+          LocaleSwitcher: true,
+        },
+      },
+    })
+
+    await flushPromises()
+    await nextTick()
+
+    await wrapper.find('.draw-button').trigger('click')
+    await flushPromises()
+    await nextTick()
+
+    expect(showInfo).toHaveBeenCalledWith('暂无可用抽奖机会')
+    expect(showError).not.toHaveBeenCalled()
+    expect(wrapper.text()).toContain('本次资格可能已经使用')
 
     wrapper.unmount()
   })

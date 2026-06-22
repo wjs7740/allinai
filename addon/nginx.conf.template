@@ -59,6 +59,14 @@ server {
         proxy_pass $ranking_api_upstream/public/channel-monitors/$1/status$is_args$args;
     }
 
+    location = /api/v1/lottery/status {
+        proxy_pass $ranking_api_upstream/lottery/status$is_args$args;
+    }
+
+    location = /api/v1/lottery/draw {
+        proxy_pass $ranking_api_upstream/lottery/draw$is_args$args;
+    }
+
     location ^~ /allincode/ {
         absolute_redirect off;
         return 301 /allcancode/;

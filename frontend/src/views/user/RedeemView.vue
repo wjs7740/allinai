@@ -390,7 +390,14 @@ const isAdminAdjustment = (type: string) => {
   return type === 'admin_balance' || type === 'admin_concurrency'
 }
 
+const isLotteryRewardRecord = (item: RedeemHistoryItem) => {
+  return String(item.code || '').toUpperCase().startsWith('LOTTERY-')
+}
+
 const getHistoryItemTitle = (item: RedeemHistoryItem) => {
+  if (isLotteryRewardRecord(item)) {
+    return t('redeem.lotteryReward')
+  }
   if (item.type === 'balance') {
     return t('redeem.balanceAddedRedeem')
   } else if (item.type === 'admin_balance') {

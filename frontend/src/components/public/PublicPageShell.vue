@@ -1,16 +1,5 @@
 <template>
   <div class="public-page-shell" :class="styleClass">
-    <RouterLink to="/home" class="announcement" aria-label="Open AllCanCode home">
-      <div class="pixel-row pixel-row-left" aria-hidden="true">
-        <span v-for="color in pixelColors" :key="`left-${color}`" :style="{ background: color }"></span>
-      </div>
-      <span class="announcement-text">{{ subtitle }}</span>
-      <span class="announcement-arrow">›</span>
-      <div class="pixel-row pixel-row-right" aria-hidden="true">
-        <span v-for="color in [...pixelColors].reverse()" :key="`right-${color}`" :style="{ background: color }"></span>
-      </div>
-    </RouterLink>
-
     <nav class="top-nav">
       <div class="nav-inner">
         <RouterLink to="/home" class="brand">
@@ -87,7 +76,6 @@ const appStore = useAppStore()
 const authStore = useAuthStore()
 const { t } = useI18n()
 
-const pixelColors = ['#2EC353', '#19A63C', '#078C28', '#008020', '#00731C', '#006619', '#004D13', '#00330D', '#001A06', '#000000']
 const STYLE_STORAGE_KEY = 'allcancode_public_style'
 
 const siteName = computed(() => appStore.cachedPublicSettings?.site_name || appStore.siteName || 'AllCanCode')
@@ -322,7 +310,7 @@ onMounted(() => {
 
 .public-main {
   position: relative;
-  min-height: calc(100vh - 124px);
+  min-height: calc(100vh - 72px);
   overflow: hidden;
   background:
     radial-gradient(circle at 50% 0%, rgba(7, 184, 50, 0.16), transparent 26%),
@@ -441,9 +429,9 @@ onMounted(() => {
 
 .public-style-light .public-main {
   background:
-    radial-gradient(circle at 50% 0%, rgba(7, 184, 50, 0.12), transparent 28%),
-    radial-gradient(circle at 12% 40%, rgba(31, 149, 172, 0.1), transparent 26%),
-    linear-gradient(180deg, #f7f7f4 0%, #eef7f0 58%, #f7f7f4 100%);
+    radial-gradient(circle at 50% 0%, rgba(7, 184, 50, 0.12), transparent 24%),
+    radial-gradient(circle at 12% 40%, rgba(31, 149, 172, 0.1), transparent 24%),
+    linear-gradient(180deg, #f3f7ef 0%, #e5f1e7 58%, #f4f7ef 100%);
 }
 
 .public-style-light .public-main::before {

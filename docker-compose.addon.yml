@@ -17,6 +17,9 @@ services:
       - "host.docker.internal:host-gateway"
     depends_on:
       - ranking-api
+    networks:
+      - default
+      - sub2api-network
 
   ranking-api:
     build:
@@ -33,3 +36,12 @@ services:
       POSTGRES_PASSWORD: "${RANKING_POSTGRES_PASSWORD:-}"
       POSTGRES_DB: "${RANKING_POSTGRES_DB:-sub2api}"
       POSTGRES_SSLMODE: "${POSTGRES_SSLMODE:-disable}"
+      SUB2API_BASE_URL: "${SUB2API_BASE_URL:-http://host.docker.internal:8080}"
+    networks:
+      - default
+      - sub2api-network
+
+networks:
+  sub2api-network:
+    external: true
+    name: "${SUB2API_NETWORK:-sub2api-deploy_sub2api-network}"

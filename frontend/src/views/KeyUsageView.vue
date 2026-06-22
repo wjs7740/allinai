@@ -133,6 +133,17 @@
               <small>{{ availableChances > 0 ? copy.readyToDraw : copy.nextNeeded }}</small>
             </div>
 
+            <div v-if="drawResult" class="draw-result">
+              <Icon name="sparkles" size="lg" />
+              <div>
+                <span>{{ copy.drawSuccessTitle }}</span>
+                <strong>{{ formatCurrency(drawResult.prize || 0) }}</strong>
+                <small>{{ copy.drawSuccessText }} · {{ maskCode(drawResult.code || '') }}</small>
+              </div>
+            </div>
+
+            <div v-if="drawError" class="draw-error">{{ drawError }}</div>
+
             <div class="progress-block">
               <div class="progress-copy">
                 <span>{{ copy.progressLabel }}</span>
@@ -163,7 +174,16 @@
             </div>
 
             <div class="panel-actions">
-              <a :href="SHOP_URL" class="panel-primary">{{ copy.rechargeCta }}</a>
+              <button
+                type="button"
+                class="panel-primary draw-button"
+                :disabled="drawLoading || availableChances <= 0"
+                @click="handleDraw"
+              >
+                <Icon name="sparkles" size="sm" :class="{ spinning: drawLoading }" />
+                {{ drawLoading ? copy.drawing : copy.drawNow }}
+              </button>
+              <a :href="SHOP_URL" class="panel-ghost">{{ copy.rechargeCta }}</a>
               <RouterLink to="/redeem" class="panel-ghost">{{ copy.redeemRecords }}</RouterLink>
             </div>
           </div>
@@ -174,20 +194,20 @@
         <article class="records-panel">
           <div class="panel-head">
             <div>
-              <p>RECHARGE</p>
-              <h2>{{ copy.rechargeRecords }}</h2>
+              <p>QUALIFYING</p>
+              <h2>{{ copy.qualifyingRecords }}</h2>
             </div>
           </div>
 
-          <div v-if="loadingUserData && !orders.length" class="compact-state">{{ copy.loading }}</div>
-          <div v-else-if="!qualifyingOrders.length" class="compact-state">{{ copy.emptyRecharge }}</div>
+          <div v-if="loadingUserData && !orders.length && !redeemRecords.length" class="compact-state">{{ copy.loading }}</div>
+          <div v-else-if="!qualifyingActivityRecords.length" class="compact-state">{{ copy.emptyQualifying }}</div>
           <div v-else class="record-list">
-            <div v-for="order in qualifyingOrders.slice(0, 5)" :key="order.id" class="record-row">
+            <div v-for="record in qualifyingActivityRecords.slice(0, 5)" :key="record.id" class="record-row">
               <div>
-                <strong>{{ formatCurrency(order.amount) }}</strong>
-                <span>{{ order.out_trade_no }}</span>
+                <strong>{{ formatCurrency(record.amount) }}</strong>
+                <span>{{ record.sourceLabel }} · {{ record.reference }}</span>
               </div>
-              <small>{{ formatRecordDate(order.completed_at || order.paid_at || order.created_at) }}</small>
+              <small>{{ formatRecordDate(record.date) }}</small>
             </div>
           </div>
         </article>
@@ -224,6 +244,7 @@ import { useI18n } from 'vue-i18n'
 import PublicPageShell from '@/components/public/PublicPageShell.vue'
 import Icon from '@/components/icons/Icon.vue'
 import { paymentAPI } from '@/api/payment'
+import lotteryAPI, { type LotteryDrawResult, type LotteryStatus } from '@/api/lottery'
 import redeemAPI, { type RedeemHistoryItem } from '@/api/redeem'
 import type { PaymentOrder } from '@/types/payment'
 import { useAppStore } from '@/stores/app'
@@ -243,9 +264,13 @@ const authStore = useAuthStore()
 const { locale } = useI18n()
 
 const loadingUserData = ref(false)
+const drawLoading = ref(false)
 const userError = ref('')
+const drawError = ref('')
 const orders = ref<PaymentOrder[]>([])
 const redeemRecords = ref<RedeemHistoryItem[]>([])
+const lotteryStatus = ref<LotteryStatus | null>(null)
+const drawResult = ref<LotteryDrawResult | null>(null)
 const activeWinnerIndex = ref(0)
 const eligibilitySection = ref<HTMLElement | null>(null)
 let winnerTimer: number | null = null
@@ -279,23 +304,32 @@ const copy = computed(() => {
       eligibilityTitle: '我的抽奖资格',
       refresh: '刷新记录',
       publicStateTitle: '登录后自动查询资格',
-      publicStateText: '系统会根据当前账号的已完成充值订单和兑换记录，计算可用抽奖次数与已兑换奖励额度。',
+      publicStateText: '系统会根据当前账号的已完成充值订单和余额兑换记录，计算可用抽奖次数与已兑换奖励额度。',
       loadFailed: '记录加载失败',
       retry: '重试',
       qualified: '已有抽奖资格',
       notQualified: '暂无抽奖资格',
-      readyToDraw: '可联系平台发放或兑换本期奖励',
+      readyToDraw: '可立即抽奖，中奖后余额自动到账',
       nextNeeded: '距离下一次抽奖还差',
-      progressLabel: '本轮充值进度',
-      completedRecharge: '已完成充值',
+      progressLabel: '本轮充值/兑换进度',
+      completedRecharge: '已充值/兑换',
       totalChances: '累计资格',
       usedRewards: '已中奖记录',
       rewardAmount: '中奖额度',
       redeemRecords: '兑换记录',
-      rechargeRecords: '充值记录',
+      qualifyingRecords: '充值/兑换资格记录',
       loading: '正在加载记录...',
-      emptyRecharge: '暂无已完成的余额充值订单',
+      emptyQualifying: '暂无满额的余额充值或兑换记录',
       emptyRedeem: '暂无兑换记录',
+      drawNow: '立即抽奖',
+      drawing: '抽奖中...',
+      drawSuccessTitle: '中奖已到账',
+      drawSuccessText: '已写入兑换记录',
+      noChanceTitle: '暂无可用抽奖机会',
+      noChanceText: '本次资格可能已经使用，中奖记录可在兑换记录中查看。充值或兑换满 $100 后可再次抽奖。',
+      pendingTitle: '抽奖状态已刷新',
+      pendingText: '系统正在同步中奖结果，请稍后刷新兑换记录查看；如果没有新记录，本次机会不会被扣除。',
+      drawFailed: '抽奖失败，请稍后重试',
     }
   }
   return {
@@ -315,23 +349,32 @@ const copy = computed(() => {
     eligibilityTitle: 'My draw eligibility',
     refresh: 'Refresh records',
     publicStateTitle: 'Sign in to check automatically',
-    publicStateText: 'We calculate draw chances from your completed recharge orders and reward redemption records.',
+    publicStateText: 'We calculate draw chances from completed balance recharges and balance redeem records.',
     loadFailed: 'Could not load records',
     retry: 'Retry',
     qualified: 'Eligible now',
     notQualified: 'Not eligible yet',
-    readyToDraw: 'Reward is ready to claim or issue',
+    readyToDraw: 'Draw now. The prize is credited automatically.',
     nextNeeded: 'Still needed for next draw',
-    progressLabel: 'Current recharge progress',
-    completedRecharge: 'Completed recharge',
+    progressLabel: 'Current recharge/redeem progress',
+    completedRecharge: 'Recharge/redeem total',
     totalChances: 'Total chances',
     usedRewards: 'Reward records',
     rewardAmount: 'Reward amount',
     redeemRecords: 'Redeem records',
-    rechargeRecords: 'Recharge records',
+    qualifyingRecords: 'Qualifying records',
     loading: 'Loading records...',
-    emptyRecharge: 'No completed balance recharge orders yet',
+    emptyQualifying: 'No qualifying balance recharge or redeem records yet',
     emptyRedeem: 'No redeem records yet',
+    drawNow: 'Draw now',
+    drawing: 'Drawing...',
+    drawSuccessTitle: 'Prize credited',
+    drawSuccessText: 'Added to redeem records',
+    noChanceTitle: 'No draw chance available',
+    noChanceText: 'This chance may already be used. Check redeem records, then recharge or redeem another $100 to draw again.',
+    pendingTitle: 'Draw status refreshed',
+    pendingText: 'The result is syncing. Refresh redeem records shortly; if no new record appears, this chance was not consumed.',
+    drawFailed: 'Draw failed. Please try again later.',
   }
 })
 
@@ -340,7 +383,7 @@ const rules = computed<Array<{ icon: RuleIcon; kicker: string; title: string; te
     icon: 'creditCard',
     kicker: '$100',
     title: locale.value.startsWith('zh') ? '充值满额得资格' : 'Recharge threshold',
-    text: locale.value.startsWith('zh') ? '单账号每累计完成 $100 余额充值，可获得 1 次抽奖资格。' : 'Every completed $100 balance recharge grants one draw chance for the account.',
+    text: locale.value.startsWith('zh') ? '单账号每累计完成 $100 余额充值或余额兑换，可获得 1 次抽奖资格。' : 'Every completed $100 balance recharge or balance redeem grants one draw chance.',
   },
   {
     icon: 'gift',
@@ -352,7 +395,7 @@ const rules = computed<Array<{ icon: RuleIcon; kicker: string; title: string; te
     icon: 'badge',
     kicker: 'AUTO',
     title: locale.value.startsWith('zh') ? '登录后查资格' : 'Account lookup',
-    text: locale.value.startsWith('zh') ? '登录后自动读取当前用户充值订单和兑换记录，展示可用资格。' : 'After sign-in, the page reads your recharge and redeem records to show available chances.',
+    text: locale.value.startsWith('zh') ? '登录后自动读取当前用户充值订单和余额兑换记录，展示可用资格。' : 'After sign-in, the page reads recharge and balance redeem records to show available chances.',
   },
   {
     icon: 'sparkles',
@@ -377,25 +420,56 @@ const qualifyingOrders = computed(() =>
   orders.value.filter((order) => order.status === 'COMPLETED' && order.order_type === 'balance')
 )
 
-const totalRecharge = computed(() =>
-  qualifyingOrders.value.reduce((sum, order) => sum + safeAmount(order.amount), 0)
-)
-
-const lotteryRewardRecords = computed(() =>
+const qualifyingRedeemRecords = computed(() =>
   redeemRecords.value.filter((record) => {
     const type = String(record.type || '').toLowerCase()
     const value = safeAmount(record.value)
-    return type.includes('balance') && value >= MIN_PRIZE && value <= MAX_PRIZE
+    return type === 'balance' && value > 0 && !isLotteryRewardRecord(record)
   })
 )
 
+const lotteryRewardRecords = computed(() =>
+  redeemRecords.value.filter((record) => isLotteryRewardRecord(record))
+)
+
 const lotteryRewardTotal = computed(() =>
+  lotteryStatus.value?.reward_amount ??
   lotteryRewardRecords.value.reduce((sum, record) => sum + safeAmount(record.value), 0)
 )
 
-const totalChances = computed(() => Math.floor(totalRecharge.value / DRAW_THRESHOLD))
-const usedChances = computed(() => Math.min(totalChances.value, lotteryRewardRecords.value.length))
-const availableChances = computed(() => Math.max(0, totalChances.value - usedChances.value))
+const localQualifyingAmount = computed(() =>
+  qualifyingOrders.value.reduce((sum, order) => sum + safeAmount(order.amount), 0) +
+  qualifyingRedeemRecords.value.reduce((sum, record) => sum + safeAmount(record.value), 0)
+)
+
+const totalRecharge = computed(() => lotteryStatus.value?.qualifying_amount ?? localQualifyingAmount.value)
+const totalChances = computed(() => lotteryStatus.value?.total_chances ?? Math.floor(totalRecharge.value / DRAW_THRESHOLD))
+const usedChances = computed(() =>
+  lotteryStatus.value?.used_chances ?? Math.min(totalChances.value, lotteryRewardRecords.value.length)
+)
+const availableChances = computed(() =>
+  lotteryStatus.value?.available_chances ?? Math.max(0, totalChances.value - usedChances.value)
+)
+
+const qualifyingActivityRecords = computed(() => {
+  const paymentRecords = qualifyingOrders.value.map((order) => ({
+    id: `order-${order.id}`,
+    amount: safeAmount(order.amount),
+    date: order.completed_at || order.paid_at || order.created_at,
+    sourceLabel: locale.value.startsWith('zh') ? '充值' : 'Recharge',
+    reference: order.out_trade_no,
+  }))
+  const redeemItems = qualifyingRedeemRecords.value.map((record) => ({
+    id: `redeem-${record.id}`,
+    amount: safeAmount(record.value),
+    date: record.used_at || record.created_at,
+    sourceLabel: locale.value.startsWith('zh') ? '兑换' : 'Redeem',
+    reference: maskCode(record.code),
+  }))
+  return [...paymentRecords, ...redeemItems].sort((a, b) => {
+    return new Date(b.date || 0).getTime() - new Date(a.date || 0).getTime()
+  })
+})
 
 const cycleAmount = computed(() => {
   if (availableChances.value > 0) return DRAW_THRESHOLD
@@ -419,18 +493,58 @@ async function loadUserActivity(): Promise<void> {
   userError.value = ''
 
   try {
-    const [ordersResponse, history] = await Promise.all([
+    const [ordersResponse, history, statusResponse] = await Promise.all([
       paymentAPI.getMyOrders({ page: 1, page_size: 100, status: 'COMPLETED' }),
       redeemAPI.getHistory(),
+      lotteryAPI.getStatus().catch(() => null),
     ])
     orders.value = ordersResponse.data?.items || []
     redeemRecords.value = history || []
+    lotteryStatus.value = statusResponse?.data || null
   } catch (err) {
     userError.value = extractApiErrorMessage(err, 'Unable to load activity records.')
     orders.value = []
     redeemRecords.value = []
+    lotteryStatus.value = null
   } finally {
     loadingUserData.value = false
+  }
+}
+
+async function handleDraw(): Promise<void> {
+  if (drawLoading.value || availableChances.value <= 0) return
+
+  drawLoading.value = true
+  drawError.value = ''
+  drawResult.value = null
+
+  try {
+    const response = await lotteryAPI.draw()
+    lotteryStatus.value = response.data.status
+    if (response.data.state === 'no_chance') {
+      drawError.value = copy.value.noChanceText
+      appStore.showInfo(copy.value.noChanceTitle)
+      await loadUserActivity()
+      return
+    }
+    if (response.data.state === 'pending_failed') {
+      drawError.value = copy.value.pendingText
+      appStore.showInfo(copy.value.pendingTitle)
+      await loadUserActivity()
+      return
+    }
+
+    drawResult.value = response.data
+    appStore.showSuccess(`${copy.value.drawSuccessTitle}: ${formatCurrency(response.data.prize || 0)}`)
+    await Promise.all([
+      loadUserActivity(),
+      authStore.refreshUser().catch(() => undefined),
+    ])
+  } catch (err) {
+    drawError.value = extractApiErrorMessage(err, copy.value.drawFailed)
+    appStore.showError(drawError.value)
+  } finally {
+    drawLoading.value = false
   }
 }
 
@@ -443,6 +557,10 @@ function maskCode(value: string): string {
   const code = String(value || '')
   if (code.length <= 8) return code || '--'
   return `${code.slice(0, 4)}...${code.slice(-4)}`
+}
+
+function isLotteryRewardRecord(record: RedeemHistoryItem): boolean {
+  return String(record.code || '').toUpperCase().startsWith('LOTTERY-')
 }
 
 function formatRecordDate(value: string): string {
@@ -465,6 +583,9 @@ watch(isAuthenticated, (authenticated) => {
   } else {
     orders.value = []
     redeemRecords.value = []
+    lotteryStatus.value = null
+    drawResult.value = null
+    drawError.value = ''
     userError.value = ''
   }
 }, { immediate: true })
@@ -931,6 +1052,49 @@ onBeforeUnmount(() => {
   font-size: 42px;
 }
 
+.draw-result {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin-top: 14px;
+  border: 1px solid rgba(10, 216, 64, 0.32);
+  border-radius: 8px;
+  background: rgba(10, 216, 64, 0.1);
+  color: #0ad840;
+  padding: 16px;
+}
+
+.draw-result div {
+  min-width: 0;
+}
+
+.draw-result span,
+.draw-result small {
+  display: block;
+  color: rgba(255, 255, 255, 0.62);
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.draw-result strong {
+  display: block;
+  color: #fff;
+  font-size: 30px;
+  font-weight: 950;
+  line-height: 1.15;
+}
+
+.draw-error {
+  margin-top: 14px;
+  border: 1px solid rgba(246, 200, 95, 0.34);
+  border-radius: 8px;
+  background: rgba(246, 200, 95, 0.09);
+  color: #f6c85f;
+  padding: 12px 14px;
+  font-size: 13px;
+  font-weight: 800;
+}
+
 .progress-block {
   margin-top: 18px;
 }
@@ -995,6 +1159,19 @@ onBeforeUnmount(() => {
   font-size: 14px;
 }
 
+.draw-button {
+  gap: 8px;
+}
+
+.draw-button:disabled {
+  cursor: not-allowed;
+  opacity: 0.62;
+}
+
+.draw-button:disabled:hover {
+  transform: none;
+}
+
 .records-grid {
   grid-template-columns: repeat(2, minmax(0, 1fr));
   margin-top: 16px;
@@ -1045,6 +1222,8 @@ onBeforeUnmount(() => {
 :global(.public-style-light) .draw-rule span,
 :global(.public-style-light) .active-winner span,
 :global(.public-style-light) .active-winner small,
+:global(.public-style-light) .draw-result span,
+:global(.public-style-light) .draw-result small,
 :global(.public-style-light) .winner-row span,
 :global(.public-style-light) .record-row span,
 :global(.public-style-light) .record-row small,
@@ -1068,17 +1247,19 @@ onBeforeUnmount(() => {
 :global(.public-style-light) .winners-panel,
 :global(.public-style-light) .eligibility-panel,
 :global(.public-style-light) .records-panel {
-  border-color: rgba(8, 123, 47, 0.2);
-  background: linear-gradient(180deg, rgba(255, 255, 255, 0.94), rgba(239, 250, 241, 0.78));
-  box-shadow: 0 18px 60px rgba(6, 58, 22, 0.1);
+  border-color: rgba(8, 123, 47, 0.34);
+  background: linear-gradient(180deg, #ffffff 0%, #f4fbf5 100%);
+  box-shadow:
+    0 18px 60px rgba(6, 58, 22, 0.13),
+    inset 0 1px rgba(255, 255, 255, 0.9);
 }
 
 :global(.public-style-light) .draw-stage {
-  border-color: rgba(15, 127, 120, 0.26);
+  border-color: rgba(15, 127, 120, 0.38);
   background:
-    radial-gradient(circle at 50% 28%, rgba(8, 123, 47, 0.14), transparent 34%),
+    radial-gradient(circle at 50% 28%, rgba(8, 123, 47, 0.18), transparent 34%),
     radial-gradient(circle at 20% 82%, rgba(184, 121, 20, 0.12), transparent 30%),
-    linear-gradient(145deg, rgba(255, 255, 255, 0.96), rgba(230, 247, 244, 0.82));
+    linear-gradient(145deg, #ffffff, #eaf7ed);
 }
 
 :global(.public-style-light) .draw-stage::before,
@@ -1087,7 +1268,11 @@ onBeforeUnmount(() => {
 :global(.public-style-light) .record-row,
 :global(.public-style-light) .metric-grid article,
 :global(.public-style-light) .active-winner {
-  border-color: rgba(8, 123, 47, 0.18);
+  border-color: rgba(8, 123, 47, 0.26);
+}
+
+:global(.public-style-light) .panel-head {
+  background: linear-gradient(180deg, #f0fbf2 0%, #ffffff 100%);
 }
 
 :global(.public-style-light) .logo-orbit {
@@ -1102,7 +1287,8 @@ onBeforeUnmount(() => {
 :global(.public-style-light) .winner-row,
 :global(.public-style-light) .record-row,
 :global(.public-style-light) .metric-grid article {
-  background: rgba(255, 255, 255, 0.78);
+  background: #ffffff;
+  box-shadow: inset 0 1px rgba(255, 255, 255, 0.88);
 }
 
 :global(.public-style-light) .prize-band,
@@ -1113,12 +1299,12 @@ onBeforeUnmount(() => {
 }
 
 :global(.public-style-light) .active-winner {
-  background: linear-gradient(180deg, rgba(232, 248, 236, 0.95), rgba(255, 247, 223, 0.68));
+  background: linear-gradient(180deg, #e8f8ec, #fff7df);
 }
 
 :global(.public-style-light) .winner-row.active {
-  border-color: rgba(8, 123, 47, 0.34);
-  background: rgba(232, 248, 236, 0.88);
+  border-color: rgba(8, 123, 47, 0.44);
+  background: #e3f5e8;
 }
 
 :global(.public-style-light) .prize-band strong,
@@ -1128,6 +1314,7 @@ onBeforeUnmount(() => {
 :global(.public-style-light) .active-winner strong,
 :global(.public-style-light) .winner-row strong,
 :global(.public-style-light) .record-row strong,
+:global(.public-style-light) .draw-result strong,
 :global(.public-style-light) .metric-grid strong,
 :global(.public-style-light) .progress-copy strong,
 :global(.public-style-light) .eligibility-badge strong,
@@ -1184,6 +1371,18 @@ onBeforeUnmount(() => {
 
 :global(.public-style-light) .eligibility-badge.qualified span {
   color: #087b2f;
+}
+
+:global(.public-style-light) .draw-result {
+  border-color: rgba(8, 123, 47, 0.26);
+  background: #e8f8ec;
+  color: #087b2f;
+}
+
+:global(.public-style-light) .draw-error {
+  border-color: rgba(184, 121, 20, 0.28);
+  background: #fff7df;
+  color: #9a5f05;
 }
 
 :global(.public-style-light) .progress-track {

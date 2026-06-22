@@ -1,10 +1,12 @@
 import http from 'node:http'
 import { URL } from 'node:url'
+import { randomInt, randomUUID } from 'node:crypto'
 import pg from 'pg'
 
 const { Pool } = pg
 
 const port = Number(process.env.PORT || 8081)
+const sub2apiBaseUrl = String(process.env.SUB2API_BASE_URL || 'http://sub2api:8080').replace(/\/$/, '')
 const pool = new Pool({
   host: process.env.POSTGRES_HOST || 'postgres',
   port: Number(process.env.POSTGRES_PORT || 5432),
@@ -24,6 +26,13 @@ const rangeDays = {
   '30d': 30,
 }
 
+const lotteryConfig = {
+  threshold: 100,
+  minPrize: 5,
+  maxPrize: 50,
+  codePrefix: 'LOTTERY-',
+}
+
 function sendJson(res, status, data) {
   const body = JSON.stringify(data)
   res.writeHead(status, {
@@ -32,6 +41,10 @@ function sendJson(res, status, data) {
     'content-length': Buffer.byteLength(body),
   })
   res.end(body)
+}
+
+function sendError(res, status, message, extra = {}) {
+  sendJson(res, status, { message, ...extra })
 }
 
 function clampLimit(value) {
@@ -114,10 +127,234 @@ function numberOrNull(value) {
   return Number.isFinite(numeric) ? numeric : null
 }
 
+function numberValue(value) {
+  const numeric = Number(value)
+  return Number.isFinite(numeric) ? numeric : 0
+}
+
 function isoOrNull(value) {
   if (!value) return null
   const date = value instanceof Date ? value : new Date(value)
   return Number.isNaN(date.getTime()) ? null : date.toISOString()
+}
+
+function authHeaders(req) {
+  const headers = {}
+  for (const name of ['authorization', 'cookie', 'accept-language', 'user-agent']) {
+    const value = req.headers[name]
+    if (typeof value === 'string' && value) headers[name] = value
+  }
+  return headers
+}
+
+function unwrapApiData(body) {
+  if (body && typeof body === 'object' && 'code' in body && 'data' in body) {
+    return body.code === 0 ? body.data : null
+  }
+  return body?.data && typeof body.data === 'object' && 'id' in body.data ? body.data : body
+}
+
+async function authenticateUser(req) {
+  const response = await fetch(`${sub2apiBaseUrl}/api/v1/auth/me`, {
+    method: 'GET',
+    headers: authHeaders(req),
+  })
+
+  if (!response.ok) {
+    return null
+  }
+
+  const body = await response.json().catch(() => null)
+  const user = unwrapApiData(body)
+  const userId = Number(user?.id)
+  if (!Number.isFinite(userId) || userId <= 0) {
+    return null
+  }
+
+  return { ...user, id: userId }
+}
+
+async function getLotteryStatusForUser(db, userId) {
+  const paymentResult = await db.query(
+    `
+      select coalesce(sum(amount), 0)::numeric as amount
+      from payment_orders
+      where user_id = $1
+        and status = 'COMPLETED'
+        and order_type = 'balance'
+    `,
+    [userId],
+  )
+  const redeemResult = await db.query(
+    `
+      select coalesce(sum(value), 0)::numeric as amount
+      from redeem_codes
+      where used_by = $1
+        and status = 'used'
+        and lower(type) = 'balance'
+        and value > 0
+        and upper(code) not like $2
+    `,
+    [userId, `${lotteryConfig.codePrefix}%`],
+  )
+  const rewardResult = await db.query(
+    `
+      select
+        count(*)::bigint as count,
+        coalesce(sum(value), 0)::numeric as amount
+      from redeem_codes
+      where used_by = $1
+        and status = 'used'
+        and upper(code) like $2
+    `,
+    [userId, `${lotteryConfig.codePrefix}%`],
+  )
+
+  const qualifyingPaymentAmount = numberValue(paymentResult.rows[0]?.amount)
+  const qualifyingRedeemAmount = numberValue(redeemResult.rows[0]?.amount)
+  const qualifyingAmount = qualifyingPaymentAmount + qualifyingRedeemAmount
+  const totalChances = Math.floor(qualifyingAmount / lotteryConfig.threshold)
+  const usedChances = Number.parseInt(rewardResult.rows[0]?.count || '0', 10) || 0
+  const availableChances = Math.max(0, totalChances - usedChances)
+
+  return {
+    threshold: lotteryConfig.threshold,
+    min_prize: lotteryConfig.minPrize,
+    max_prize: lotteryConfig.maxPrize,
+    qualifying_amount: qualifyingAmount,
+    qualifying_payment_amount: qualifyingPaymentAmount,
+    qualifying_redeem_amount: qualifyingRedeemAmount,
+    total_chances: totalChances,
+    used_chances: usedChances,
+    available_chances: availableChances,
+    reward_amount: numberValue(rewardResult.rows[0]?.amount),
+  }
+}
+
+function buildLotteryCode(userId) {
+  const userPart = Number(userId).toString(36).toUpperCase()
+  const randomLength = Math.max(6, 32 - lotteryConfig.codePrefix.length - userPart.length - 1)
+  const randomPart = randomUUID().replace(/-/g, '').slice(0, randomLength).toUpperCase()
+  return `${lotteryConfig.codePrefix}${userPart}-${randomPart}`
+}
+
+function mapRedeemRow(row) {
+  return {
+    id: Number(row.id),
+    code: row.code,
+    type: row.type,
+    value: numberValue(row.value),
+    status: row.status,
+    used_at: isoOrNull(row.used_at),
+    created_at: isoOrNull(row.created_at),
+    notes: row.notes || '',
+  }
+}
+
+async function cleanupLotteryReservations(db) {
+  await db.query(
+    `
+      delete from redeem_codes
+      where upper(code) like $1
+        and status = 'unused'
+        and used_by is null
+    `,
+    [`${lotteryConfig.codePrefix}%`],
+  )
+}
+
+async function insertLotteryReward(client, userId, prize) {
+  for (let attempt = 0; attempt < 5; attempt += 1) {
+    const code = buildLotteryCode(userId)
+    try {
+      const result = await client.query(
+        `
+          insert into redeem_codes (
+            code, type, value, status, used_by, used_at, created_at, notes, validity_days
+          )
+          values ($1, 'balance', $2, 'used', $3, now(), now(), $4, 30)
+          returning id, code, type, value, status, used_by, used_at, created_at, notes
+        `,
+        [code, prize, userId, `AllCanCode lottery reward for user ${userId}`],
+      )
+      return mapRedeemRow(result.rows[0])
+    } catch (error) {
+      if (error?.code === '23505' && attempt < 4) continue
+      throw error
+    }
+  }
+  throw new Error('Could not generate a unique lottery reward code.')
+}
+
+async function drawLotteryForUser(userId) {
+  const client = await pool.connect()
+  try {
+    await client.query('begin')
+    await cleanupLotteryReservations(client)
+
+    const userResult = await client.query(
+      `
+        select id, balance
+        from users
+        where id = $1
+          and deleted_at is null
+          and status = 'active'
+        for update
+      `,
+      [userId],
+    )
+
+    if (!userResult.rows.length) {
+      await client.query('rollback')
+      return { statusCode: 403, body: { message: 'Account is not active.' } }
+    }
+
+    const beforeStatus = await getLotteryStatusForUser(client, userId)
+    if (beforeStatus.available_chances <= 0) {
+      await client.query('rollback')
+      return {
+        statusCode: 200,
+        body: {
+          state: 'no_chance',
+          message: 'No lottery chance available.',
+          status: beforeStatus,
+        },
+      }
+    }
+
+    const prize = randomInt(lotteryConfig.minPrize, lotteryConfig.maxPrize + 1)
+    const reward = await insertLotteryReward(client, userId, prize)
+    const balanceResult = await client.query(
+      `
+        update users
+        set balance = balance + $2,
+            updated_at = now()
+        where id = $1
+        returning balance
+      `,
+      [userId, prize],
+    )
+
+    await client.query('commit')
+    const status = await getLotteryStatusForUser(pool, userId)
+
+    return {
+      statusCode: 200,
+      body: {
+        state: 'won',
+        prize,
+        code: reward.code,
+        new_balance: numberValue(balanceResult.rows[0]?.balance),
+        reward,
+        status,
+      },
+    }
+  } catch (error) {
+    await client.query('rollback').catch(() => {})
+    throw error
+  } finally {
+    client.release()
+  }
 }
 
 function roundPercent(ok, total) {
@@ -469,6 +706,29 @@ const server = http.createServer(async (req, res) => {
     if (req.method === 'GET' && url.pathname === '/public/channel-monitors') {
       const data = await getChannelMonitors()
       sendJson(res, 200, data)
+      return
+    }
+
+    if (req.method === 'GET' && url.pathname === '/lottery/status') {
+      const user = await authenticateUser(req)
+      if (!user) {
+        sendError(res, 401, 'Unauthorized')
+        return
+      }
+      await cleanupLotteryReservations(pool)
+      const data = await getLotteryStatusForUser(pool, user.id)
+      sendJson(res, 200, data)
+      return
+    }
+
+    if (req.method === 'POST' && url.pathname === '/lottery/draw') {
+      const user = await authenticateUser(req)
+      if (!user) {
+        sendError(res, 401, 'Unauthorized')
+        return
+      }
+      const result = await drawLotteryForUser(user.id)
+      sendJson(res, result.statusCode, result.body)
       return
     }
 

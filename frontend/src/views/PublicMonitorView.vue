@@ -484,9 +484,11 @@ onBeforeUnmount(() => {
 :global(.public-style-light) .hero-stats article,
 :global(.public-style-light) .monitor-toolbar,
 :global(.public-style-light) .monitor-panel {
-  border-color: rgba(8, 123, 47, 0.2);
-  background: linear-gradient(180deg, rgba(255, 255, 255, 0.94), rgba(239, 250, 241, 0.78));
-  box-shadow: 0 18px 60px rgba(6, 58, 22, 0.1);
+  border-color: rgba(8, 123, 47, 0.34);
+  background: linear-gradient(180deg, #ffffff 0%, #f4fbf5 100%);
+  box-shadow:
+    0 18px 60px rgba(6, 58, 22, 0.13),
+    inset 0 1px rgba(255, 255, 255, 0.9);
 }
 
 :global(.public-style-light) .hero-stats strong,
@@ -554,12 +556,25 @@ onBeforeUnmount(() => {
 
 :global(.public-style-light) .monitor-panel :deep(.bg-white\/70),
 :global(.public-style-light) .monitor-panel :deep(.dark\:bg-dark-800\/60) {
-  background: rgba(255, 255, 255, 0.9);
+  background: #ffffff;
 }
 
 :global(.public-style-light) .monitor-panel :deep(.border-gray-200\/80),
 :global(.public-style-light) .monitor-panel :deep(.dark\:border-dark-700\/70) {
-  border-color: rgba(8, 123, 47, 0.2);
+  border-color: rgba(8, 123, 47, 0.34);
+}
+
+:global(.public-style-light) .monitor-panel :deep(.bg-gray-50),
+:global(.public-style-light) .monitor-panel :deep(.dark\:bg-dark-900),
+:global(.public-style-light) .monitor-panel :deep(.dark\:bg-dark-900\/60) {
+  background: #eef8f1;
+}
+
+:global(.public-style-light) .monitor-panel :deep(.border-gray-100),
+:global(.public-style-light) .monitor-panel :deep(.border-gray-200),
+:global(.public-style-light) .monitor-panel :deep(.dark\:border-dark-700),
+:global(.public-style-light) .monitor-panel :deep(.dark\:border-dark-800) {
+  border-color: rgba(8, 123, 47, 0.24);
 }
 
 @keyframes spin {
