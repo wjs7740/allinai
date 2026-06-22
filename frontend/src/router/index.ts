@@ -178,6 +178,16 @@ const routes: RouteRecordRaw[] = [
     }
   },
   {
+    path: '/help',
+    name: 'HelpCenter',
+    alias: '/help/',
+    component: () => import('@/views/HelpCenterView.vue'),
+    meta: {
+      requiresAuth: false,
+      title: 'Help Center',
+    }
+  },
+  {
     path: '/legal/:documentId',
     name: 'LegalDocument',
     component: () => import('@/views/public/LegalDocumentView.vue'),

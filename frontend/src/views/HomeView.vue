@@ -3,9 +3,6 @@
     <nav class="top-nav">
       <div class="nav-inner">
         <RouterLink to="/home" class="brand">
-          <span class="brand-mark">
-            <span>{{ brandInitial }}</span>
-          </span>
           <span>{{ brandName }}</span>
         </RouterLink>
 
@@ -131,22 +128,29 @@
 
       <section id="pricing" class="popular-section">
         <div class="popular-inner">
-          <div class="popular-heading">
-            <h2><span>{{ homeCopy.popularMuted }}</span> {{ homeCopy.popularTitle }}</h2>
-            <p>{{ homeCopy.popularText }}</p>
-          </div>
+          <div class="popular-top">
+            <div class="popular-heading">
+              <span class="section-eyebrow">{{ homeCopy.popularEyebrow }}</span>
+              <h2><span>{{ homeCopy.popularMuted }}</span> {{ homeCopy.popularTitle }}</h2>
+              <p>{{ homeCopy.popularText }}</p>
+              <div class="popular-points" aria-label="Plan highlights">
+                <span v-for="point in pricingHighlights" :key="point">{{ point }}</span>
+              </div>
+            </div>
 
-          <a :href="SHOP_URL" class="view-all-models">
-            {{ homeCopy.viewModels }}
-            <span>»</span>
-          </a>
+            <a :href="SHOP_URL" class="view-all-models">
+              {{ homeCopy.viewModels }}
+              <span>»</span>
+            </a>
+          </div>
 
           <div class="model-card-grid">
             <article v-for="model in popularModels" :key="model.name" class="model-card">
-              <div class="model-logo">{{ model.logo }}</div>
-              <span class="model-badge">{{ model.badge }}</span>
+              <div class="model-card-head">
+                <span class="model-badge">{{ model.badge }}</span>
+                <span class="model-context">{{ model.context }}</span>
+              </div>
               <h3>{{ model.name }}</h3>
-              <p>{{ model.context }}</p>
               <div class="price-box">
                 <span>{{ model.leftLabel }} <strong>{{ model.input }}</strong></span>
                 <span>{{ model.rightLabel }} <strong>{{ model.output }}</strong></span>
@@ -154,6 +158,7 @@
               <div class="model-tags">
                 <span v-for="tag in model.tags" :key="tag">{{ tag }}</span>
               </div>
+              <a :href="SHOP_URL" class="model-buy">{{ homeCopy.cardBuy }}</a>
             </article>
           </div>
         </div>
@@ -205,7 +210,7 @@
 
 const client = new OpenAI({
   apiKey: "ak-allcancode-...",
-  baseURL: "https://api.allcancode.ai/v1"
+  baseURL: "https://api.allcancode.ai"
 });
 
 const completion = await client.chat.completions.create({
@@ -258,7 +263,6 @@ const appStore = useAppStore()
 const { t, locale } = useI18n()
 
 const brandName = computed(() => appStore.cachedPublicSettings?.site_name || appStore.siteName || 'AllCanCode')
-const brandInitial = computed(() => 'AC')
 const STYLE_STORAGE_KEY = 'allcancode_public_style'
 const SHOP_URL = 'https://shop.allincode.top'
 const styleMode = ref<'dark' | 'light'>(readStyleMode())
@@ -296,10 +300,12 @@ const homeCopy = computed(() => isZh.value ? {
   reliabilityMuted: '一个 Key，',
   reliabilityTitle: '稳定可靠',
   reliabilityText: '一个 API 和一个 Key 接入 OpenAI、Claude 与 Gemini。透明计费、智能路由、高可用和更安全的密钥管理都已内置。',
+  popularEyebrow: '限时套餐权益',
   popularMuted: '套餐',
   popularTitle: '价格',
   popularText: '当前余额卡和订阅卡价格，适合按量调用、短期高频和连续项目使用。',
   viewModels: '购买套餐',
+  cardBuy: '立即购买',
   quickMuted: '快速',
   quickTitle: '上手指南',
   quickText: '从注册到第一次 OpenAI 兼容请求，按 AllCanCode 的流程快速完成。',
@@ -324,10 +330,12 @@ const homeCopy = computed(() => isZh.value ? {
   reliabilityMuted: 'One Key,',
   reliabilityTitle: 'Rock-Solid Reliability',
   reliabilityText: 'One API and one key for OpenAI, Claude, and Gemini. Transparent billing, smart routing, high availability, and safer key management are built in.',
+  popularEyebrow: 'Limited Plan Benefits',
   popularMuted: 'Plan',
   popularTitle: 'Pricing',
   popularText: 'Current balance cards and subscription cards for pay-as-you-go calls, short bursts, and continuous projects.',
   viewModels: 'Buy Plans',
+  cardBuy: 'Buy now',
   quickMuted: 'Quick',
   quickTitle: 'Start Guide',
   quickText: 'Go from signup to your first OpenAI-compatible request with a clean AllCanCode setup flow.',
@@ -396,6 +404,7 @@ const productTabs = computed(() =>
     { key: 'ranking', label: t('nav.ranking'), to: '/ranking' },
     { key: 'monitor', label: t('nav.monitor'), to: '/monitor' },
     { key: 'key-usage', label: t('nav.keyUsage'), to: '/key-usage' },
+    { key: 'help', label: t('nav.help'), to: '/help' },
   ]
 )
 
@@ -444,16 +453,21 @@ const reliabilityCards = computed(() => isZh.value ? [
 ])
 
 const popularModels = computed(() => isZh.value ? [
-  { logo: 'AC', badge: '余额', name: '余额卡 200 刀', context: '20 USDT', leftLabel: '支付', input: '20U', rightLabel: '到账', output: '$200', tags: ['按量付费', '统一余额', '适合测试'] },
-  { logo: 'AC', badge: '余额', name: '余额卡 1000 刀', context: '98 USDT', leftLabel: '支付', input: '98U', rightLabel: '到账', output: '$1000', tags: ['高性价比', '批量任务', '团队共享'] },
-  { logo: 'AC', badge: '日卡', name: '订阅日卡', context: '24U / 天', leftLabel: '支付', input: '24U', rightLabel: '每日', output: '$300', tags: ['短期高频', '日额度', '灵活开通'] },
-  { logo: 'AC', badge: '周卡', name: '订阅周卡', context: '150U / 周', leftLabel: '支付', input: '150U', rightLabel: '每日', output: '$300', tags: ['连续项目', '周周期', '稳定使用'] },
+  { badge: '余额', name: '余额卡 200 刀', context: '20 USDT', leftLabel: '支付', input: '20U', rightLabel: '到账', output: '$200', tags: ['按量付费', '统一余额', '适合测试'] },
+  { badge: '余额', name: '余额卡 1000 刀', context: '98 USDT', leftLabel: '支付', input: '98U', rightLabel: '到账', output: '$1000', tags: ['高性价比', '批量任务', '团队共享'] },
+  { badge: '日卡', name: '订阅日卡', context: '24U / 天', leftLabel: '支付', input: '24U', rightLabel: '每日', output: '$300', tags: ['短期高频', '日额度', '灵活开通'] },
+  { badge: '周卡', name: '订阅周卡', context: '150U / 周', leftLabel: '支付', input: '150U', rightLabel: '每日', output: '$300', tags: ['连续项目', '周周期', '稳定使用'] },
 ] : [
-  { logo: 'AC', badge: 'BALANCE', name: 'Balance Card $200', context: '20 USDT', leftLabel: 'Pay', input: '20U', rightLabel: 'Credit', output: '$200', tags: ['Pay as you go', 'Unified balance', 'Testing'] },
-  { logo: 'AC', badge: 'BALANCE', name: 'Balance Card $1000', context: '98 USDT', leftLabel: 'Pay', input: '98U', rightLabel: 'Credit', output: '$1000', tags: ['Best value', 'Batch jobs', 'Teams'] },
-  { logo: 'AC', badge: 'DAILY', name: 'Daily Subscription', context: '24U / day', leftLabel: 'Pay', input: '24U', rightLabel: 'Daily', output: '$300', tags: ['Short bursts', 'Daily quota', 'Flexible'] },
-  { logo: 'AC', badge: 'WEEKLY', name: 'Weekly Subscription', context: '150U / week', leftLabel: 'Pay', input: '150U', rightLabel: 'Daily', output: '$300', tags: ['Project cycles', 'Weekly pass', 'Stable use'] },
+  { badge: 'BALANCE', name: 'Balance Card $200', context: '20 USDT', leftLabel: 'Pay', input: '20U', rightLabel: 'Credit', output: '$200', tags: ['Pay as you go', 'Unified balance', 'Testing'] },
+  { badge: 'BALANCE', name: 'Balance Card $1000', context: '98 USDT', leftLabel: 'Pay', input: '98U', rightLabel: 'Credit', output: '$1000', tags: ['Best value', 'Batch jobs', 'Teams'] },
+  { badge: 'DAILY', name: 'Daily Subscription', context: '24U / day', leftLabel: 'Pay', input: '24U', rightLabel: 'Daily', output: '$300', tags: ['Short bursts', 'Daily quota', 'Flexible'] },
+  { badge: 'WEEKLY', name: 'Weekly Subscription', context: '150U / week', leftLabel: 'Pay', input: '150U', rightLabel: 'Daily', output: '$300', tags: ['Project cycles', 'Weekly pass', 'Stable use'] },
 ])
+
+const pricingHighlights = computed(() => isZh.value
+  ? ['注册即送 $10', '失败请求不计费', 'OpenAI SDK 兼容']
+  : ['Sign up bonus $10', 'Failed requests not billed', 'OpenAI SDK compatible']
+)
 
 const quickStartSteps = computed(() => isZh.value ? [
   { index: '1', title: '创建 API Key', text: '进入控制台，为你的项目创建独立 Key。' },
@@ -633,23 +647,6 @@ onMounted(async () => {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-}
-
-.brand-mark {
-  display: inline-flex;
-  width: 42px;
-  height: 42px;
-  flex: 0 0 auto;
-  align-items: center;
-  justify-content: center;
-  overflow: hidden;
-  border: 1px solid rgba(46, 195, 83, 0.65);
-  border-radius: 8px;
-  background: linear-gradient(135deg, #0ad840, #1f95ac);
-  color: #001a06;
-  font-size: 20px;
-  font-weight: 950;
-  box-shadow: 0 0 24px rgba(7, 184, 50, 0.2);
 }
 
 .nav-tabs {
@@ -1428,29 +1425,89 @@ onMounted(async () => {
 }
 
 .popular-section {
-  padding: 110px 22px 0;
+  position: relative;
+  overflow: hidden;
+  padding: 96px 22px 0;
   background: #000;
+}
+
+.popular-section::before {
+  pointer-events: none;
+  position: absolute;
+  inset: 0;
+  content: "";
+  opacity: 0.5;
+  background: radial-gradient(circle at 50% 0%, rgba(7, 184, 50, 0.18), transparent 28%);
 }
 
 .popular-inner {
   position: relative;
-  max-width: 1440px;
+  max-width: 1360px;
   margin: 0 auto;
-  border-radius: 110px 110px 0 0;
-  background: #f7f7f4;
+  overflow: hidden;
+  border: 1px solid rgba(17, 17, 17, 0.08);
+  border-radius: 72px 72px 0 0;
+  background:
+    radial-gradient(circle at 84% 0%, rgba(7, 184, 50, 0.12), transparent 30%),
+    radial-gradient(circle at 10% 100%, rgba(31, 149, 172, 0.08), transparent 28%),
+    linear-gradient(180deg, #ffffff 0%, #f2f6f1 100%);
+  background-size: auto, auto, auto;
   color: #111;
-  padding: 110px 90px 120px;
+  padding: 54px 54px 58px;
+  box-shadow:
+    0 18px 70px rgba(0, 0, 0, 0.06),
+    inset 0 1px rgba(255, 255, 255, 0.9);
+}
+
+.popular-inner::before {
+  pointer-events: none;
+  position: absolute;
+  top: -120px;
+  right: -80px;
+  width: 440px;
+  height: 440px;
+  content: "";
+  border-radius: 999px;
+  background: conic-gradient(from 180deg, rgba(7, 184, 50, 0.08), rgba(31, 149, 172, 0.14), rgba(246, 200, 95, 0.1), rgba(7, 184, 50, 0.08));
+  filter: blur(1px);
+}
+
+.popular-top {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: end;
+  gap: 28px;
+  margin-bottom: 28px;
 }
 
 .popular-heading {
-  text-align: center;
+  max-width: 760px;
+  text-align: left;
+}
+
+.section-eyebrow {
+  display: inline-flex;
+  align-items: center;
+  border: 1px solid rgba(10, 216, 64, 0.28);
+  border-radius: 999px;
+  background: #e8f8ec;
+  color: #087b2f;
+  padding: 8px 12px;
+  font-size: 12px;
+  font-weight: 900;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
 }
 
 .popular-heading h2 {
+  margin-top: 16px;
   color: #111;
-  font-size: clamp(42px, 5vw, 76px);
-  font-weight: 480;
+  font-size: clamp(36px, 4vw, 62px);
+  font-weight: 620;
   letter-spacing: -0.04em;
+  line-height: 1.04;
 }
 
 .popular-heading h2 span {
@@ -1458,118 +1515,225 @@ onMounted(async () => {
 }
 
 .popular-heading p {
-  margin-top: 20px;
-  color: #666;
-  font-size: 18px;
+  max-width: 720px;
+  margin: 14px 0 0;
+  color: #4b5f51;
+  font-size: 16px;
   font-weight: 650;
+  line-height: 1.7;
+}
+
+.popular-points {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 9px;
+  margin-top: 18px;
+}
+
+.popular-points span {
+  border: 1px solid rgba(8, 123, 47, 0.16);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.78);
+  color: #173824;
+  padding: 7px 11px;
+  font-size: 12px;
+  font-weight: 800;
 }
 
 .view-all-models {
-  display: flex;
+  display: inline-flex;
   width: max-content;
   align-items: center;
   gap: 10px;
-  margin: 70px 0 36px auto;
-  border: 1px solid #ddd;
+  border: 1px solid rgba(8, 123, 47, 0.26);
   border-radius: 999px;
   background: #fff;
-  color: #8a8a8a;
-  padding: 12px 24px;
-  font-size: 17px;
-  font-weight: 750;
+  color: #087b2f;
+  padding: 12px 22px;
+  font-size: 15px;
+  font-weight: 900;
+  box-shadow: 0 12px 30px rgba(8, 123, 47, 0.1);
 }
 
 .view-all-models span {
-  color: #111;
-  font-size: 28px;
+  color: inherit;
+  font-size: 24px;
 }
 
 .model-card-grid {
+  position: relative;
+  z-index: 1;
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 24px;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 12px;
 }
 
 .model-card {
   position: relative;
-  min-height: 300px;
+  min-height: 264px;
   overflow: hidden;
-  border: 1px solid #ddd;
-  border-radius: 20px;
-  background: rgba(255, 255, 255, 0.72);
-  padding: 30px;
-  box-shadow: 0 18px 60px rgba(0, 0, 0, 0.04);
+  border: 1px solid rgba(8, 123, 47, 0.16);
+  border-radius: 16px;
+  background:
+    linear-gradient(90deg, rgba(8, 123, 47, 0.055) 1px, transparent 1px),
+    linear-gradient(180deg, rgba(8, 123, 47, 0.045) 1px, transparent 1px),
+    radial-gradient(circle at 80% 12%, rgba(10, 216, 64, 0.16), transparent 34%),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.98), rgba(238, 248, 241, 0.86));
+  background-size: 26px 26px, 26px 26px, auto, auto;
+  padding: 22px;
+  box-shadow:
+    0 16px 44px rgba(6, 58, 22, 0.08),
+    inset 0 1px rgba(255, 255, 255, 0.92);
 }
 
-.model-logo {
-  color: #e76f48;
-  font-size: 42px;
-  line-height: 1;
+.model-card:nth-child(2) {
+  border-color: rgba(8, 123, 47, 0.34);
+  background:
+    linear-gradient(90deg, rgba(8, 123, 47, 0.06) 1px, transparent 1px),
+    linear-gradient(180deg, rgba(8, 123, 47, 0.05) 1px, transparent 1px),
+    radial-gradient(circle at 78% 14%, rgba(10, 216, 64, 0.24), transparent 36%),
+    linear-gradient(180deg, rgba(232, 248, 236, 0.98), rgba(255, 255, 255, 0.9));
+  background-size: 26px 26px, 26px 26px, auto, auto;
+  box-shadow:
+    0 22px 58px rgba(8, 123, 47, 0.13),
+    inset 0 1px rgba(255, 255, 255, 0.94);
+}
+
+.model-card::before,
+.model-card::after {
+  pointer-events: none;
+  position: absolute;
+  content: "";
+}
+
+.model-card::before {
+  right: -54px;
+  bottom: -62px;
+  width: 170px;
+  height: 170px;
+  border-radius: 999px;
+  background:
+    radial-gradient(circle at 35% 35%, rgba(255, 255, 255, 0.7), transparent 18%),
+    conic-gradient(from 150deg, rgba(7, 184, 50, 0.18), rgba(31, 149, 172, 0.18), rgba(246, 200, 95, 0.16), rgba(7, 184, 50, 0.18));
+  opacity: 0.8;
+}
+
+.model-card::after {
+  right: 18px;
+  bottom: 58px;
+  width: 70px;
+  height: 42px;
+  border: 1px solid rgba(8, 123, 47, 0.18);
+  border-radius: 12px;
+  background:
+    linear-gradient(90deg, rgba(10, 216, 64, 0.34) 0 24%, transparent 24% 31%, rgba(31, 149, 172, 0.28) 31% 56%, transparent 56% 63%, rgba(246, 200, 95, 0.28) 63%),
+    rgba(255, 255, 255, 0.58);
+  box-shadow: 0 10px 30px rgba(8, 123, 47, 0.1);
+}
+
+.model-card-head {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
 }
 
 .model-badge {
-  position: absolute;
-  top: 0;
-  right: 0;
-  border-left: 1px solid #ddd;
-  border-bottom: 1px solid #ddd;
-  border-radius: 0 20px 0 16px;
-  background: #fff;
-  color: #ff4d3d;
-  padding: 10px 18px;
-  font-size: 14px;
+  border: 1px solid rgba(8, 123, 47, 0.22);
+  border-radius: 999px;
+  background: #e8f8ec;
+  color: #087b2f;
+  padding: 8px 14px;
+  font-size: 12px;
   font-weight: 900;
 }
 
+.model-context {
+  color: #4b5f51;
+  font-size: 12px;
+  font-weight: 850;
+}
+
 .model-card h3 {
-  margin-top: 24px;
-  color: #414141;
-  font-size: 26px;
+  position: relative;
+  z-index: 1;
+  margin-top: 20px;
+  color: #101412;
+  font-size: 22px;
   font-weight: 850;
   letter-spacing: -0.03em;
 }
 
-.model-card p {
-  margin-top: 10px;
-  color: #999;
-  font-size: 15px;
-  font-weight: 650;
-}
-
 .price-box {
+  position: relative;
+  z-index: 1;
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 10px;
-  margin-top: 30px;
-  border: 1px solid #ddd;
-  border-radius: 16px;
-  background: #fff;
-  padding: 18px;
-  color: #999;
+  gap: 8px;
+  margin-top: 20px;
+  border: 1px solid rgba(8, 123, 47, 0.16);
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.82);
+  padding: 14px;
+  color: #4b5f51;
   font-weight: 700;
 }
 
+.price-box span {
+  display: grid;
+  gap: 4px;
+  min-width: 0;
+}
+
 .price-box strong {
-  color: #333;
-  font-size: 24px;
+  color: #101412;
+  font-size: 21px;
   font-weight: 900;
 }
 
 .model-tags {
+  position: relative;
+  z-index: 1;
   display: flex;
   flex-wrap: wrap;
-  gap: 8px;
-  margin-top: 18px;
+  gap: 6px;
+  margin-top: 14px;
 }
 
 .model-tags span {
-  border: 1px solid #e2e2e2;
+  border: 1px solid rgba(8, 123, 47, 0.15);
   border-radius: 999px;
   background: #fff;
-  color: #777;
-  padding: 6px 12px;
-  font-size: 13px;
+  color: #0b5f2a;
+  padding: 5px 10px;
+  font-size: 12px;
   font-weight: 750;
+}
+
+.model-buy {
+  position: relative;
+  z-index: 1;
+  display: inline-flex;
+  width: 100%;
+  min-height: 38px;
+  align-items: center;
+  justify-content: center;
+  margin-top: 16px;
+  border: 1px solid rgba(8, 123, 47, 0.28);
+  border-radius: 999px;
+  background: #e8f8ec;
+  color: #087b2f;
+  font-size: 13px;
+  font-weight: 900;
+  transition: background 0.2s ease, color 0.2s ease, transform 0.2s ease;
+}
+
+.model-buy:hover {
+  background: #0a8f36;
+  color: #fff;
+  transform: translateY(-1px);
 }
 
 .quickstart-section {
@@ -1754,14 +1918,6 @@ onMounted(async () => {
   -webkit-text-fill-color: currentColor;
 }
 
-.public-style-light .brand-mark {
-  border-color: rgba(8, 123, 47, 0.38);
-  background: linear-gradient(135deg, #0fbf4a 0%, #58c7b1 58%, #f2c45a 100%);
-  box-shadow:
-    0 12px 30px rgba(8, 123, 47, 0.16),
-    inset 0 1px rgba(255, 255, 255, 0.55);
-}
-
 .public-style-light .nav-tab {
   border-color: rgba(8, 123, 47, 0.1);
   background: rgba(255, 255, 255, 0.34);
@@ -1840,8 +1996,7 @@ onMounted(async () => {
 }
 
 .public-style-light .btn-ghost,
-.public-style-light .panel-ghost,
-.public-style-light .view-all-models {
+.public-style-light .panel-ghost {
   border-color: rgba(15, 127, 120, 0.32);
   background: linear-gradient(180deg, rgba(255, 255, 255, 0.98), rgba(230, 247, 244, 0.84));
   color: #0c514c;
@@ -1952,8 +2107,16 @@ onMounted(async () => {
 }
 
 .public-style-light .popular-inner {
-  background: linear-gradient(180deg, #fbfbf7 0%, #edf8ef 100%);
-  box-shadow: inset 0 1px rgba(255, 255, 255, 0.82);
+  border-color: rgba(8, 91, 38, 0.18);
+  background:
+    linear-gradient(90deg, rgba(6, 58, 22, 0.055) 1px, transparent 1px),
+    linear-gradient(180deg, rgba(6, 58, 22, 0.045) 1px, transparent 1px),
+    radial-gradient(circle at 76% 12%, rgba(8, 123, 47, 0.16), transparent 30%),
+    linear-gradient(135deg, #ffffff 0%, #edf8ef 100%);
+  background-size: 34px 34px, 34px 34px, auto, auto;
+  box-shadow:
+    0 22px 70px rgba(6, 58, 22, 0.1),
+    inset 0 1px rgba(255, 255, 255, 0.82);
 }
 
 .public-style-light .popular-heading h2,
@@ -1962,36 +2125,84 @@ onMounted(async () => {
 }
 
 .public-style-light .popular-heading p,
-.public-style-light .model-card p,
-.public-style-light .price-box {
-  color: rgba(6, 58, 22, 0.62);
+.public-style-light .model-context,
+.public-style-light .price-box,
+.public-style-light .popular-points span {
+  color: #173824;
+}
+
+.public-style-light .popular-heading h2 span {
+  color: rgba(6, 58, 22, 0.46);
+}
+
+.public-style-light .section-eyebrow {
+  border-color: rgba(8, 91, 38, 0.24);
+  background: #d9eee0;
+  color: #056525;
+}
+
+.public-style-light .popular-points span {
+  border-color: rgba(8, 91, 38, 0.18);
+  background: rgba(255, 255, 255, 0.74);
+}
+
+.public-style-light .view-all-models {
+  border-color: #087b2f;
+  background: linear-gradient(180deg, #0a8f36 0%, #066828 100%);
+  color: #fff;
+  box-shadow: 0 14px 34px rgba(8, 123, 47, 0.18);
 }
 
 .public-style-light .model-card {
-  border-color: rgba(8, 123, 47, 0.18);
-  background: linear-gradient(180deg, rgba(255, 255, 255, 0.96), rgba(238, 248, 241, 0.8));
+  border-color: rgba(8, 91, 38, 0.2);
+  background:
+    linear-gradient(135deg, rgba(255, 255, 255, 0.98), rgba(234, 248, 238, 0.86)),
+    linear-gradient(90deg, rgba(6, 58, 22, 0.06) 1px, transparent 1px),
+    linear-gradient(180deg, rgba(6, 58, 22, 0.05) 1px, transparent 1px);
+  background-size: auto, 28px 28px, 28px 28px;
   box-shadow: 0 18px 50px rgba(6, 58, 22, 0.08);
 }
 
-.public-style-light .model-logo {
-  color: #087b2f;
+.public-style-light .model-card:nth-child(2) {
+  border-color: rgba(8, 91, 38, 0.38);
+  background:
+    linear-gradient(135deg, rgba(255, 255, 255, 0.98), rgba(219, 242, 226, 0.9)),
+    linear-gradient(90deg, rgba(6, 58, 22, 0.06) 1px, transparent 1px),
+    linear-gradient(180deg, rgba(6, 58, 22, 0.05) 1px, transparent 1px);
+  background-size: auto, 28px 28px, 28px 28px;
+  box-shadow: 0 20px 58px rgba(8, 91, 38, 0.13);
 }
 
 .public-style-light .model-badge {
-  border-color: rgba(184, 121, 20, 0.26);
-  background: #fff7df;
-  color: #9a5f05;
+  border-color: rgba(8, 91, 38, 0.24);
+  background: #d9eee0;
+  color: #056525;
 }
 
 .public-style-light .price-box {
-  border-color: rgba(15, 127, 120, 0.22);
-  background: rgba(255, 255, 255, 0.86);
+  border-color: rgba(8, 91, 38, 0.2);
+  background: rgba(255, 255, 255, 0.82);
+}
+
+.public-style-light .price-box strong {
+  color: #07140d;
 }
 
 .public-style-light .model-tags span {
   border-color: rgba(8, 123, 47, 0.2);
   background: #f2fbf4;
   color: #0b5f2a;
+}
+
+.public-style-light .model-buy {
+  border-color: rgba(8, 91, 38, 0.24);
+  background: #e8f8ec;
+  color: #056525;
+}
+
+.public-style-light .model-buy:hover {
+  background: #0a8f36;
+  color: #fff;
 }
 
 .public-style-light .step-card span {
@@ -2009,6 +2220,284 @@ onMounted(async () => {
     linear-gradient(90deg, rgba(7, 184, 50, 0), #07b832, rgba(7, 184, 50, 0)),
     repeating-linear-gradient(90deg, transparent 0 28px, rgba(6, 58, 22, 0.24) 28px 30px);
   box-shadow: 0 0 28px rgba(8, 123, 47, 0.18);
+}
+
+.public-style-light {
+  background: #f8fafc;
+  color: #0f172a;
+}
+
+.public-style-light .announcement,
+.public-style-light .top-nav {
+  border-bottom-color: rgba(37, 99, 235, 0.16);
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.94), rgba(248, 250, 252, 0.9)),
+    rgba(248, 250, 252, 0.96);
+  box-shadow: 0 1px 0 rgba(37, 99, 235, 0.08);
+}
+
+.public-style-light .announcement-text,
+.public-style-light .announcement-arrow,
+.public-style-light .hero-subtitle,
+.public-style-light .hero-desc,
+.public-style-light .btn-ghost,
+.public-style-light .panel-ghost,
+.public-style-light .strip-item {
+  color: #475569;
+}
+
+.public-style-light .brand,
+.public-style-light .hero-main,
+.public-style-light .hero-tagline,
+.public-style-light .center-heading h2,
+.public-style-light .code-copy h2,
+.public-style-light .final-cta h2,
+.public-style-light .card-copy h3,
+.public-style-light .step-card h3,
+.public-style-light .testimonial-card strong {
+  color: #0f172a;
+}
+
+.public-style-light .nav-tab {
+  border-color: rgba(37, 99, 235, 0.1);
+  background: rgba(255, 255, 255, 0.58);
+  color: rgba(51, 65, 85, 0.82);
+}
+
+.public-style-light .nav-tab:hover,
+.public-style-light .nav-tab.active {
+  border-color: rgba(37, 99, 235, 0.36);
+  background: linear-gradient(180deg, rgba(239, 246, 255, 0.98), rgba(219, 234, 254, 0.86));
+  color: #1d4ed8;
+  box-shadow: 0 10px 24px rgba(37, 99, 235, 0.12);
+}
+
+.public-style-light .style-toggle,
+.public-style-light .login-btn {
+  border-color: rgba(37, 99, 235, 0.28);
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.98), rgba(239, 246, 255, 0.88));
+  color: #1d4ed8;
+  box-shadow: 0 8px 24px rgba(37, 99, 235, 0.1);
+}
+
+.public-style-light .style-toggle:hover,
+.public-style-light .login-btn:hover {
+  border-color: rgba(14, 165, 233, 0.5);
+  background: linear-gradient(180deg, #fff, rgba(239, 246, 255, 0.94));
+  box-shadow: 0 12px 28px rgba(14, 165, 233, 0.12);
+}
+
+.public-style-light .hero,
+.public-style-light .hero-video {
+  background:
+    radial-gradient(circle at 50% 38%, rgba(37, 99, 235, 0.12), transparent 24%),
+    radial-gradient(circle at 25% 78%, rgba(14, 165, 233, 0.1), transparent 20%),
+    linear-gradient(180deg, #f8fafc 0%, #eef4ff 58%, #f8fafc 100%);
+}
+
+.public-style-light .hero-kicker {
+  color: #2563eb;
+}
+
+.public-style-light .halo {
+  background: linear-gradient(90deg, rgba(37, 99, 235, 0.24), rgba(14, 165, 233, 0.18));
+}
+
+.public-style-light .hero-overlay {
+  background:
+    linear-gradient(180deg, rgba(248, 250, 252, 0.2) 0%, rgba(248, 250, 252, 0.66) 72%, #f8fafc 100%),
+    radial-gradient(circle at 50% 50%, transparent 0%, rgba(255, 255, 255, 0.34) 48%, rgba(248, 250, 252, 0.9) 100%);
+}
+
+.public-style-light .hero-overlay::after {
+  background-image: repeating-linear-gradient(90deg, transparent 0, transparent 3px, rgba(15, 23, 42, 0.14) 4px);
+}
+
+.public-style-light .light-wall span {
+  background:
+    linear-gradient(90deg, rgba(37, 99, 235, 0), rgba(37, 99, 235, 0.62), rgba(14, 165, 233, 0.46), rgba(184, 121, 20, 0.26), rgba(37, 99, 235, 0));
+  box-shadow:
+    0 0 14px rgba(37, 99, 235, 0.18),
+    10px 0 0 rgba(14, 165, 233, 0.1),
+    22px 0 0 rgba(184, 121, 20, 0.08);
+}
+
+.public-style-light .pixel-mark i,
+.public-style-light .green-dot,
+.public-style-light .signup-bonus span,
+.public-style-light .step-card span {
+  background: #2563eb;
+  box-shadow:
+    0 0 0 4px rgba(37, 99, 235, 0.12),
+    0 0 16px rgba(37, 99, 235, 0.26);
+}
+
+.public-style-light .pixel-mark i:nth-child(5) {
+  background: #0ea5e9;
+}
+
+.public-style-light .btn-primary,
+.public-style-light .panel-primary,
+.public-style-light .view-all-models {
+  border-color: #2563eb;
+  background: linear-gradient(180deg, #3b82f6 0%, #1d4ed8 100%);
+  color: #fff;
+  box-shadow:
+    0 14px 34px rgba(37, 99, 235, 0.2),
+    inset 0 1px rgba(255, 255, 255, 0.24);
+}
+
+.public-style-light .btn-ghost,
+.public-style-light .panel-ghost {
+  border-color: rgba(14, 165, 233, 0.28);
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.98), rgba(239, 246, 255, 0.86));
+  color: #1e40af;
+  box-shadow: 0 10px 26px rgba(14, 165, 233, 0.1);
+}
+
+.public-style-light .signup-bonus {
+  border-color: rgba(184, 121, 20, 0.28);
+  background:
+    linear-gradient(135deg, rgba(255, 247, 223, 0.96), rgba(239, 246, 255, 0.92)),
+    rgba(255, 255, 255, 0.9);
+}
+
+.public-style-light .signup-bonus strong,
+.public-style-light .stat-value,
+.public-style-light .card-copy :deep(strong),
+.public-style-light .price-box strong,
+.public-style-light .popular-heading h2,
+.public-style-light .model-card h3 {
+  color: #0f172a;
+}
+
+.public-style-light .signup-bonus small,
+.public-style-light .stat-label,
+.public-style-light .center-heading p,
+.public-style-light .code-copy span,
+.public-style-light .final-cta span,
+.public-style-light .card-copy p,
+.public-style-light .step-card p,
+.public-style-light .testimonial-card p,
+.public-style-light .testimonial-card span,
+.public-style-light .popular-heading p,
+.public-style-light .model-context,
+.public-style-light .price-box,
+.public-style-light .popular-points span {
+  color: #475569;
+}
+
+.public-style-light .stat-card,
+.public-style-light .reliability-card,
+.public-style-light .testimonial-card,
+.public-style-light .step-card,
+.public-style-light .model-card {
+  border-color: rgba(37, 99, 235, 0.16);
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.96), rgba(248, 250, 252, 0.88));
+  box-shadow: 0 18px 60px rgba(15, 23, 42, 0.08);
+}
+
+.public-style-light .stat-symbol span,
+.public-style-light .tech-visual span {
+  border-color: rgba(37, 99, 235, 0.26);
+  box-shadow: 0 0 18px rgba(37, 99, 235, 0.1);
+}
+
+.public-style-light .symbol-atom span:nth-child(3),
+.public-style-light .visual-api span {
+  background: rgba(37, 99, 235, 0.12);
+}
+
+.public-style-light .model-strip,
+.public-style-light .popular-section {
+  background: #f8fafc;
+}
+
+.public-style-light .popular-section::before {
+  background: radial-gradient(circle at 50% 0%, rgba(37, 99, 235, 0.1), transparent 28%);
+}
+
+.public-style-light .model-strip {
+  border-top-color: rgba(37, 99, 235, 0.14);
+  border-bottom-color: rgba(14, 165, 233, 0.14);
+  background: rgba(239, 246, 255, 0.7);
+}
+
+.public-style-light .strip-item,
+.public-style-light .model-tags span,
+.public-style-light .model-buy,
+.public-style-light .section-eyebrow,
+.public-style-light .model-badge {
+  border-color: rgba(37, 99, 235, 0.16);
+  background: #eff6ff;
+  color: #1d4ed8;
+}
+
+.public-style-light .strip-icon,
+.public-style-light .code-copy p,
+.public-style-light .final-cta p {
+  color: #2563eb;
+}
+
+.public-style-light .code-window,
+.public-style-light .popular-inner {
+  border-color: rgba(37, 99, 235, 0.16);
+  background:
+    radial-gradient(circle at 100% 0%, rgba(37, 99, 235, 0.1), transparent 32%),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.96), rgba(239, 246, 255, 0.78));
+  box-shadow: 0 18px 60px rgba(15, 23, 42, 0.08);
+}
+
+.public-style-light .popular-inner {
+  background:
+    linear-gradient(90deg, rgba(37, 99, 235, 0.045) 1px, transparent 1px),
+    linear-gradient(180deg, rgba(37, 99, 235, 0.035) 1px, transparent 1px),
+    radial-gradient(circle at 76% 12%, rgba(37, 99, 235, 0.12), transparent 30%),
+    linear-gradient(135deg, #ffffff 0%, #f1f5f9 100%);
+}
+
+.public-style-light .popular-inner::before,
+.public-style-light .model-card::before {
+  background: conic-gradient(from 150deg, rgba(37, 99, 235, 0.16), rgba(14, 165, 233, 0.16), rgba(246, 200, 95, 0.12), rgba(37, 99, 235, 0.16));
+}
+
+.public-style-light .model-card::after {
+  border-color: rgba(37, 99, 235, 0.16);
+  background:
+    linear-gradient(90deg, rgba(37, 99, 235, 0.24) 0 24%, transparent 24% 31%, rgba(14, 165, 233, 0.22) 31% 56%, transparent 56% 63%, rgba(246, 200, 95, 0.22) 63%),
+    rgba(255, 255, 255, 0.72);
+  box-shadow: 0 10px 30px rgba(37, 99, 235, 0.1);
+}
+
+.public-style-light .model-card:nth-child(2) {
+  border-color: rgba(37, 99, 235, 0.3);
+  background:
+    linear-gradient(135deg, rgba(255, 255, 255, 0.98), rgba(239, 246, 255, 0.92)),
+    linear-gradient(90deg, rgba(37, 99, 235, 0.045) 1px, transparent 1px),
+    linear-gradient(180deg, rgba(37, 99, 235, 0.035) 1px, transparent 1px);
+  box-shadow: 0 20px 58px rgba(37, 99, 235, 0.11);
+}
+
+.public-style-light .price-box,
+.public-style-light .popular-points span {
+  border-color: rgba(37, 99, 235, 0.14);
+  background: rgba(255, 255, 255, 0.84);
+}
+
+.public-style-light .model-buy:hover {
+  background: #2563eb;
+  color: #fff;
+}
+
+.public-style-light .code-window code {
+  color: #1e293b;
+}
+
+.public-style-light .timeline-line {
+  background:
+    linear-gradient(90deg, rgba(37, 99, 235, 0), #2563eb, rgba(37, 99, 235, 0)),
+    repeating-linear-gradient(90deg, transparent 0 28px, rgba(15, 23, 42, 0.16) 28px 30px);
+  box-shadow: 0 0 28px rgba(37, 99, 235, 0.16);
 }
 
 @keyframes lightPulse {
@@ -2139,6 +2628,11 @@ onMounted(async () => {
   .popular-inner {
     border-radius: 54px 54px 0 0;
     padding: 76px 20px 90px;
+  }
+
+  .popular-top {
+    grid-template-columns: 1fr;
+    align-items: start;
   }
 
   .view-all-models {

@@ -378,6 +378,7 @@ export default {
     ranking: '排行榜',
     monitor: '监控',
     keyUsage: '抽奖活动',
+    help: '帮助中心',
     dashboard: '仪表盘',
     announcements: '公告',
     apiKeys: 'API 密钥',

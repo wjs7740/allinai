@@ -1210,51 +1210,51 @@ onBeforeUnmount(() => {
   text-align: center;
 }
 
-:global(.public-style-light) .hero-copy h1 span:first-child,
-:global(.public-style-light) .hero-copy h1 span:last-child {
+:global(.public-style-light .hero-copy h1 span:first-child),
+:global(.public-style-light .hero-copy h1 span:last-child){
   background: none;
   color: #101412;
   -webkit-text-fill-color: currentColor;
 }
 
-:global(.public-style-light) .hero-desc,
-:global(.public-style-light) .prize-band span,
-:global(.public-style-light) .draw-rule span,
-:global(.public-style-light) .active-winner span,
-:global(.public-style-light) .active-winner small,
-:global(.public-style-light) .draw-result span,
-:global(.public-style-light) .draw-result small,
-:global(.public-style-light) .winner-row span,
-:global(.public-style-light) .record-row span,
-:global(.public-style-light) .record-row small,
-:global(.public-style-light) .metric-grid span,
-:global(.public-style-light) .progress-copy span,
-:global(.public-style-light) .eligibility-badge small,
-:global(.public-style-light) .login-state span,
-:global(.public-style-light) .compact-state,
-:global(.public-style-light) .rule-card p {
-  color: #264b32;
+:global(.public-style-light .hero-desc),
+:global(.public-style-light .prize-band span),
+:global(.public-style-light .draw-rule span),
+:global(.public-style-light .active-winner span),
+:global(.public-style-light .active-winner small),
+:global(.public-style-light .draw-result span),
+:global(.public-style-light .draw-result small),
+:global(.public-style-light .winner-row span),
+:global(.public-style-light .record-row span),
+:global(.public-style-light .record-row small),
+:global(.public-style-light .metric-grid span),
+:global(.public-style-light .progress-copy span),
+:global(.public-style-light .eligibility-badge small),
+:global(.public-style-light .login-state span),
+:global(.public-style-light .compact-state),
+:global(.public-style-light .rule-card p){
+  color: #173824;
 }
 
-:global(.public-style-light) .hero-kicker,
-:global(.public-style-light) .panel-head p,
-:global(.public-style-light) .rule-card span {
+:global(.public-style-light .hero-kicker),
+:global(.public-style-light .panel-head p),
+:global(.public-style-light .rule-card span){
   color: #087b2f;
 }
 
-:global(.public-style-light) .draw-stage,
-:global(.public-style-light) .rule-card,
-:global(.public-style-light) .winners-panel,
-:global(.public-style-light) .eligibility-panel,
-:global(.public-style-light) .records-panel {
-  border-color: rgba(8, 123, 47, 0.34);
-  background: linear-gradient(180deg, #ffffff 0%, #f4fbf5 100%);
+:global(.public-style-light .draw-stage),
+:global(.public-style-light .rule-card),
+:global(.public-style-light .winners-panel),
+:global(.public-style-light .eligibility-panel),
+:global(.public-style-light .records-panel){
+  border-color: rgba(8, 91, 38, 0.3);
+  background: linear-gradient(180deg, #ffffff 0%, #eef8f1 100%);
   box-shadow:
-    0 18px 60px rgba(6, 58, 22, 0.13),
+    0 18px 60px rgba(6, 58, 22, 0.16),
     inset 0 1px rgba(255, 255, 255, 0.9);
 }
 
-:global(.public-style-light) .draw-stage {
+:global(.public-style-light .draw-stage){
   border-color: rgba(15, 127, 120, 0.38);
   background:
     radial-gradient(circle at 50% 28%, rgba(8, 123, 47, 0.18), transparent 34%),
@@ -1262,75 +1262,75 @@ onBeforeUnmount(() => {
     linear-gradient(145deg, #ffffff, #eaf7ed);
 }
 
-:global(.public-style-light) .draw-stage::before,
-:global(.public-style-light) .panel-head,
-:global(.public-style-light) .winner-row,
-:global(.public-style-light) .record-row,
-:global(.public-style-light) .metric-grid article,
-:global(.public-style-light) .active-winner {
-  border-color: rgba(8, 123, 47, 0.26);
+:global(.public-style-light .draw-stage::before),
+:global(.public-style-light .panel-head),
+:global(.public-style-light .winner-row),
+:global(.public-style-light .record-row),
+:global(.public-style-light .metric-grid article),
+:global(.public-style-light .active-winner){
+  border-color: rgba(8, 91, 38, 0.26);
 }
 
-:global(.public-style-light) .panel-head {
+:global(.public-style-light .panel-head){
   background: linear-gradient(180deg, #f0fbf2 0%, #ffffff 100%);
 }
 
-:global(.public-style-light) .logo-orbit {
+:global(.public-style-light .logo-orbit){
   border-color: rgba(8, 123, 47, 0.42);
   background: linear-gradient(135deg, #0fbf4a 0%, #58c7b1 58%, #f2c45a 100%);
   color: #001a06;
   box-shadow: 0 20px 60px rgba(8, 123, 47, 0.18);
 }
 
-:global(.public-style-light) .prize-band,
-:global(.public-style-light) .draw-rule,
-:global(.public-style-light) .winner-row,
-:global(.public-style-light) .record-row,
-:global(.public-style-light) .metric-grid article {
+:global(.public-style-light .prize-band),
+:global(.public-style-light .draw-rule),
+:global(.public-style-light .winner-row),
+:global(.public-style-light .record-row),
+:global(.public-style-light .metric-grid article){
   background: #ffffff;
   box-shadow: inset 0 1px rgba(255, 255, 255, 0.88);
 }
 
-:global(.public-style-light) .prize-band,
-:global(.public-style-light) .draw-rule {
+:global(.public-style-light .prize-band),
+:global(.public-style-light .draw-rule){
   border-color: rgba(15, 127, 120, 0.24);
   background: linear-gradient(180deg, rgba(255, 255, 255, 0.92), rgba(230, 247, 244, 0.78));
   box-shadow: 0 10px 26px rgba(15, 127, 120, 0.09);
 }
 
-:global(.public-style-light) .active-winner {
-  background: linear-gradient(180deg, #e8f8ec, #fff7df);
+:global(.public-style-light .active-winner){
+  background: linear-gradient(180deg, #e1f4e7, #fff4d2);
 }
 
-:global(.public-style-light) .winner-row.active {
-  border-color: rgba(8, 123, 47, 0.44);
-  background: #e3f5e8;
+:global(.public-style-light .winner-row.active){
+  border-color: rgba(8, 91, 38, 0.44);
+  background: #d8efdf;
 }
 
-:global(.public-style-light) .prize-band strong,
-:global(.public-style-light) .draw-rule strong,
-:global(.public-style-light) .rule-card strong,
-:global(.public-style-light) .panel-head h2,
-:global(.public-style-light) .active-winner strong,
-:global(.public-style-light) .winner-row strong,
-:global(.public-style-light) .record-row strong,
-:global(.public-style-light) .draw-result strong,
-:global(.public-style-light) .metric-grid strong,
-:global(.public-style-light) .progress-copy strong,
-:global(.public-style-light) .eligibility-badge strong,
-:global(.public-style-light) .login-state strong {
-  color: #101412;
+:global(.public-style-light .prize-band strong),
+:global(.public-style-light .draw-rule strong),
+:global(.public-style-light .rule-card strong),
+:global(.public-style-light .panel-head h2),
+:global(.public-style-light .active-winner strong),
+:global(.public-style-light .winner-row strong),
+:global(.public-style-light .record-row strong),
+:global(.public-style-light .draw-result strong),
+:global(.public-style-light .metric-grid strong),
+:global(.public-style-light .progress-copy strong),
+:global(.public-style-light .eligibility-badge strong),
+:global(.public-style-light .login-state strong){
+  color: #07140d;
 }
 
-:global(.public-style-light) .record-row,
-:global(.public-style-light) .winner-row,
-:global(.public-style-light) .metric-grid article,
-:global(.public-style-light) .progress-copy {
-  color: #102018;
+:global(.public-style-light .record-row),
+:global(.public-style-light .winner-row),
+:global(.public-style-light .metric-grid article),
+:global(.public-style-light .progress-copy){
+  color: #07140d;
 }
 
-:global(.public-style-light) .btn-primary,
-:global(.public-style-light) .panel-primary {
+:global(.public-style-light .btn-primary),
+:global(.public-style-light .panel-primary){
   border-color: #087b2f;
   background: linear-gradient(180deg, #0a8f36 0%, #066828 100%);
   color: #fff;
@@ -1339,72 +1339,223 @@ onBeforeUnmount(() => {
     inset 0 1px rgba(255, 255, 255, 0.24);
 }
 
-:global(.public-style-light) .btn-ghost,
-:global(.public-style-light) .panel-ghost,
-:global(.public-style-light) .icon-button {
+:global(.public-style-light .btn-ghost),
+:global(.public-style-light .panel-ghost),
+:global(.public-style-light .icon-button){
   border-color: rgba(15, 127, 120, 0.32);
   background: linear-gradient(180deg, rgba(255, 255, 255, 0.98), rgba(230, 247, 244, 0.84));
   color: #0c514c;
   box-shadow: 0 10px 26px rgba(15, 127, 120, 0.1);
 }
 
-:global(.public-style-light) .rule-icon,
-:global(.public-style-light) .live-chip {
-  border-color: rgba(8, 123, 47, 0.28);
-  background: rgba(232, 248, 236, 0.86);
-  color: #087b2f;
+:global(.public-style-light .rule-icon),
+:global(.public-style-light .live-chip){
+  border-color: rgba(8, 91, 38, 0.28);
+  background: #d9eee0;
+  color: #056525;
 }
 
-:global(.public-style-light) .eligibility-badge {
+:global(.public-style-light .eligibility-badge){
   border-color: rgba(184, 121, 20, 0.28);
-  background: #fff7df;
+  background: #fff2c7;
 }
 
-:global(.public-style-light) .eligibility-badge span {
-  color: #9a5f05;
+:global(.public-style-light .eligibility-badge span){
+  color: #7a4700;
 }
 
-:global(.public-style-light) .eligibility-badge.qualified {
-  border-color: rgba(8, 123, 47, 0.32);
-  background: #e8f8ec;
+:global(.public-style-light .eligibility-badge.qualified){
+  border-color: rgba(8, 91, 38, 0.32);
+  background: #d9eee0;
 }
 
-:global(.public-style-light) .eligibility-badge.qualified span {
-  color: #087b2f;
+:global(.public-style-light .eligibility-badge.qualified span){
+  color: #056525;
 }
 
-:global(.public-style-light) .draw-result {
-  border-color: rgba(8, 123, 47, 0.26);
-  background: #e8f8ec;
-  color: #087b2f;
+:global(.public-style-light .draw-result){
+  border-color: rgba(8, 91, 38, 0.26);
+  background: #d9eee0;
+  color: #056525;
 }
 
-:global(.public-style-light) .draw-error {
+:global(.public-style-light .draw-error){
   border-color: rgba(184, 121, 20, 0.28);
-  background: #fff7df;
-  color: #9a5f05;
+  background: #fff2c7;
+  color: #7a4700;
 }
 
-:global(.public-style-light) .progress-track {
-  background: rgba(8, 123, 47, 0.12);
+:global(.public-style-light .progress-track){
+  background: rgba(8, 91, 38, 0.14);
 }
 
-:global(.public-style-light) .progress-track span {
+:global(.public-style-light .progress-track span){
   background: linear-gradient(90deg, #0a8f36, #0f7f78, #f6c85f);
 }
 
-:global(.public-style-light) .green-dot,
-:global(.public-style-light) .live-chip i {
+:global(.public-style-light .green-dot),
+:global(.public-style-light .live-chip i){
   background: #0a8f36;
   box-shadow:
     0 0 0 4px rgba(10, 143, 54, 0.12),
     0 0 16px rgba(10, 143, 54, 0.36);
 }
 
-:global(.public-style-light) .pixel-prizes i {
+:global(.public-style-light .pixel-prizes i){
   background: #0a8f36;
   box-shadow:
     18px 28px 0 rgba(15, 127, 120, 0.38),
+    42px 8px 0 rgba(184, 121, 20, 0.24);
+}
+
+:global(.public-style-light .hero-copy h1 span:first-child),
+:global(.public-style-light .hero-copy h1 span:last-child){
+  color: #0f172a;
+}
+
+:global(.public-style-light .hero-desc),
+:global(.public-style-light .prize-band span),
+:global(.public-style-light .draw-rule span),
+:global(.public-style-light .active-winner span),
+:global(.public-style-light .active-winner small),
+:global(.public-style-light .draw-result span),
+:global(.public-style-light .draw-result small),
+:global(.public-style-light .winner-row span),
+:global(.public-style-light .record-row span),
+:global(.public-style-light .record-row small),
+:global(.public-style-light .metric-grid span),
+:global(.public-style-light .progress-copy span),
+:global(.public-style-light .eligibility-badge small),
+:global(.public-style-light .login-state span),
+:global(.public-style-light .compact-state),
+:global(.public-style-light .rule-card p){
+  color: #475569;
+}
+
+:global(.public-style-light .hero-kicker),
+:global(.public-style-light .panel-head p),
+:global(.public-style-light .rule-card span){
+  color: #2563eb;
+}
+
+:global(.public-style-light .draw-stage),
+:global(.public-style-light .rule-card),
+:global(.public-style-light .winners-panel),
+:global(.public-style-light .eligibility-panel),
+:global(.public-style-light .records-panel){
+  border-color: rgba(37, 99, 235, 0.16);
+  background: linear-gradient(180deg, #ffffff 0%, #f8fafc 100%);
+  box-shadow:
+    0 18px 60px rgba(15, 23, 42, 0.1),
+    inset 0 1px rgba(255, 255, 255, 0.9);
+}
+
+:global(.public-style-light .draw-stage){
+  border-color: rgba(37, 99, 235, 0.2);
+  background:
+    radial-gradient(circle at 50% 28%, rgba(37, 99, 235, 0.12), transparent 34%),
+    radial-gradient(circle at 20% 82%, rgba(184, 121, 20, 0.12), transparent 30%),
+    linear-gradient(145deg, #ffffff, #eef4ff);
+}
+
+:global(.public-style-light .draw-stage::before),
+:global(.public-style-light .panel-head),
+:global(.public-style-light .winner-row),
+:global(.public-style-light .record-row),
+:global(.public-style-light .metric-grid article),
+:global(.public-style-light .active-winner){
+  border-color: rgba(37, 99, 235, 0.14);
+}
+
+:global(.public-style-light .panel-head),
+:global(.public-style-light .prize-band),
+:global(.public-style-light .draw-rule){
+  background: linear-gradient(180deg, #eff6ff 0%, #ffffff 100%);
+}
+
+:global(.public-style-light .logo-orbit){
+  border-color: rgba(37, 99, 235, 0.34);
+  background: linear-gradient(135deg, #3b82f6 0%, #0ea5e9 58%, #f6c85f 100%);
+  color: #fff;
+  box-shadow: 0 20px 60px rgba(37, 99, 235, 0.18);
+}
+
+:global(.public-style-light .active-winner){
+  background: linear-gradient(180deg, #eff6ff, #fff7df);
+}
+
+:global(.public-style-light .winner-row.active){
+  border-color: rgba(37, 99, 235, 0.28);
+  background: #eef4ff;
+}
+
+:global(.public-style-light .prize-band strong),
+:global(.public-style-light .draw-rule strong),
+:global(.public-style-light .rule-card strong),
+:global(.public-style-light .panel-head h2),
+:global(.public-style-light .active-winner strong),
+:global(.public-style-light .winner-row strong),
+:global(.public-style-light .record-row strong),
+:global(.public-style-light .draw-result strong),
+:global(.public-style-light .metric-grid strong),
+:global(.public-style-light .progress-copy strong),
+:global(.public-style-light .eligibility-badge strong),
+:global(.public-style-light .login-state strong){
+  color: #0f172a;
+}
+
+:global(.public-style-light .btn-primary),
+:global(.public-style-light .panel-primary){
+  border-color: #2563eb;
+  background: linear-gradient(180deg, #3b82f6 0%, #1d4ed8 100%);
+  color: #fff;
+  box-shadow:
+    0 14px 34px rgba(37, 99, 235, 0.2),
+    inset 0 1px rgba(255, 255, 255, 0.24);
+}
+
+:global(.public-style-light .btn-ghost),
+:global(.public-style-light .panel-ghost),
+:global(.public-style-light .icon-button){
+  border-color: rgba(37, 99, 235, 0.22);
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.98), rgba(239, 246, 255, 0.86));
+  color: #1d4ed8;
+  box-shadow: 0 10px 26px rgba(37, 99, 235, 0.1);
+}
+
+:global(.public-style-light .rule-icon),
+:global(.public-style-light .live-chip),
+:global(.public-style-light .eligibility-badge.qualified),
+:global(.public-style-light .draw-result){
+  border-color: rgba(37, 99, 235, 0.18);
+  background: #eff6ff;
+  color: #1d4ed8;
+}
+
+:global(.public-style-light .eligibility-badge.qualified span){
+  color: #1d4ed8;
+}
+
+:global(.public-style-light .progress-track){
+  background: rgba(37, 99, 235, 0.1);
+}
+
+:global(.public-style-light .progress-track span){
+  background: linear-gradient(90deg, #2563eb, #0ea5e9, #f6c85f);
+}
+
+:global(.public-style-light .green-dot),
+:global(.public-style-light .live-chip i),
+:global(.public-style-light .pixel-prizes i){
+  background: #2563eb;
+  box-shadow:
+    0 0 0 4px rgba(37, 99, 235, 0.12),
+    0 0 16px rgba(37, 99, 235, 0.28);
+}
+
+:global(.public-style-light .pixel-prizes i){
+  box-shadow:
+    18px 28px 0 rgba(14, 165, 233, 0.3),
     42px 8px 0 rgba(184, 121, 20, 0.24);
 }
 

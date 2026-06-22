@@ -378,6 +378,7 @@ export default {
     ranking: 'Ranking',
     monitor: 'Monitor',
     keyUsage: 'Lottery',
+    help: 'Help Center',
     dashboard: 'Dashboard',
     announcements: 'Announcements',
     apiKeys: 'API Keys',

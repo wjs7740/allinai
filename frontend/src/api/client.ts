@@ -19,6 +19,7 @@ const PUBLIC_AUTH_PATHS = [
   '/ranking',
   '/monitor',
   '/key-usage',
+  '/help',
   '/setup',
   '/legal',
   '/login',

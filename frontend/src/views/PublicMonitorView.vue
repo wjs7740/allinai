@@ -469,112 +469,230 @@ onBeforeUnmount(() => {
   animation: spin 0.9s linear infinite;
 }
 
-:global(.public-style-light) .page-hero h1 {
+:global(.public-style-light .page-hero h1){
   background: none;
   color: #101412;
   -webkit-text-fill-color: currentColor;
 }
 
-:global(.public-style-light) .hero-copy,
-:global(.public-style-light) .hero-stats span,
-:global(.public-style-light) .state-box {
-  color: #264b32;
+:global(.public-style-light .hero-copy),
+:global(.public-style-light .hero-stats span),
+:global(.public-style-light .state-box){
+  color: #173824;
 }
 
-:global(.public-style-light) .hero-stats article,
-:global(.public-style-light) .monitor-toolbar,
-:global(.public-style-light) .monitor-panel {
-  border-color: rgba(8, 123, 47, 0.34);
-  background: linear-gradient(180deg, #ffffff 0%, #f4fbf5 100%);
+:global(.public-style-light .hero-stats article),
+:global(.public-style-light .monitor-toolbar),
+:global(.public-style-light .monitor-panel){
+  border-color: rgba(8, 91, 38, 0.3);
+  background: linear-gradient(180deg, #ffffff 0%, #eef8f1 100%);
   box-shadow:
-    0 18px 60px rgba(6, 58, 22, 0.13),
+    0 18px 60px rgba(6, 58, 22, 0.16),
     inset 0 1px rgba(255, 255, 255, 0.9);
 }
 
-:global(.public-style-light) .hero-stats strong,
-:global(.public-style-light) .state-box strong {
+:global(.public-style-light .hero-stats strong),
+:global(.public-style-light .state-box strong){
   color: #101412;
 }
 
-:global(.public-style-light) .hero-stats strong.operational,
-:global(.public-style-light) .refresh-button {
+:global(.public-style-light .hero-stats strong.operational),
+:global(.public-style-light .refresh-button){
   color: #087b2f;
 }
 
-:global(.public-style-light) .hero-stats strong.degraded {
+:global(.public-style-light .hero-stats strong.degraded){
   color: #9a5f05;
 }
 
-:global(.public-style-light) .segmented {
+:global(.public-style-light .segmented){
   border-color: rgba(15, 127, 120, 0.24);
   background: rgba(255, 255, 255, 0.76);
   box-shadow: inset 0 1px rgba(255, 255, 255, 0.8);
 }
 
-:global(.public-style-light) .segmented button {
-  color: #264b32;
+:global(.public-style-light .segmented button){
+  color: #12311f;
 }
 
-:global(.public-style-light) .segmented button.active {
+:global(.public-style-light .segmented button.active){
   background: linear-gradient(180deg, #0a8f36, #066828);
   color: #fff;
   box-shadow: 0 8px 20px rgba(8, 123, 47, 0.18);
 }
 
-:global(.public-style-light) .status-chip.operational {
+:global(.public-style-light .status-chip.operational){
   border-color: rgba(8, 123, 47, 0.28);
   background: #e8f8ec;
   color: #087b2f;
 }
 
-:global(.public-style-light) .status-chip.degraded {
+:global(.public-style-light .status-chip.degraded){
   border-color: rgba(184, 121, 20, 0.28);
   background: #fff7df;
   color: #9a5f05;
 }
 
-:global(.public-style-light) .refresh-button {
+:global(.public-style-light .refresh-button){
   border-color: rgba(15, 127, 120, 0.32);
   background: linear-gradient(180deg, rgba(255, 255, 255, 0.98), rgba(230, 247, 244, 0.84));
   box-shadow: 0 10px 26px rgba(15, 127, 120, 0.1);
 }
 
-:global(.public-style-light) .monitor-panel :deep(.text-gray-900),
-:global(.public-style-light) .monitor-panel :deep(.dark\:text-white),
-:global(.public-style-light) .monitor-panel :deep(.font-semibold),
-:global(.public-style-light) .monitor-panel :deep(.font-bold) {
-  color: #101412;
+:global(.public-style-light .monitor-panel .text-gray-900),
+:global(.public-style-light .monitor-panel .text-gray-800),
+:global(.public-style-light .monitor-panel .dark\:text-white),
+:global(.public-style-light .monitor-panel .dark\:text-gray-100),
+:global(.public-style-light .monitor-panel .font-semibold),
+:global(.public-style-light .monitor-panel .font-bold){
+  color: #07140d !important;
 }
 
-:global(.public-style-light) .monitor-panel :deep(.text-gray-700),
-:global(.public-style-light) .monitor-panel :deep(.text-gray-600),
-:global(.public-style-light) .monitor-panel :deep(.text-gray-500),
-:global(.public-style-light) .monitor-panel :deep(.dark\:text-dark-300),
-:global(.public-style-light) .monitor-panel :deep(.dark\:text-dark-400) {
-  color: #264b32;
+:global(.public-style-light .monitor-panel .text-gray-700),
+:global(.public-style-light .monitor-panel .text-gray-600),
+:global(.public-style-light .monitor-panel .text-gray-500),
+:global(.public-style-light .monitor-panel .text-gray-400),
+:global(.public-style-light .monitor-panel .dark\:text-gray-300),
+:global(.public-style-light .monitor-panel .dark\:text-gray-400),
+:global(.public-style-light .monitor-panel .dark\:text-dark-300),
+:global(.public-style-light .monitor-panel .dark\:text-dark-400){
+  color: #173824 !important;
 }
 
-:global(.public-style-light) .monitor-panel :deep(.bg-white\/70),
-:global(.public-style-light) .monitor-panel :deep(.dark\:bg-dark-800\/60) {
+:global(.public-style-light .monitor-panel button){
+  color: #07140d !important;
+}
+
+:global(.public-style-light .monitor-panel .bg-white\/70),
+:global(.public-style-light .monitor-panel .dark\:bg-dark-800),
+:global(.public-style-light .monitor-panel .dark\:bg-dark-800\/60){
   background: #ffffff;
 }
 
-:global(.public-style-light) .monitor-panel :deep(.border-gray-200\/80),
-:global(.public-style-light) .monitor-panel :deep(.dark\:border-dark-700\/70) {
-  border-color: rgba(8, 123, 47, 0.34);
+:global(.public-style-light .monitor-panel .bg-gray-100),
+:global(.public-style-light .monitor-panel .dark\:bg-dark-700),
+:global(.public-style-light .monitor-panel .dark\:bg-dark-700\/60){
+  background: #dbeee2;
 }
 
-:global(.public-style-light) .monitor-panel :deep(.bg-gray-50),
-:global(.public-style-light) .monitor-panel :deep(.dark\:bg-dark-900),
-:global(.public-style-light) .monitor-panel :deep(.dark\:bg-dark-900\/60) {
-  background: #eef8f1;
+:global(.public-style-light .monitor-panel .border-gray-200\/80),
+:global(.public-style-light .monitor-panel .dark\:border-dark-700\/70){
+  border-color: rgba(8, 91, 38, 0.3);
 }
 
-:global(.public-style-light) .monitor-panel :deep(.border-gray-100),
-:global(.public-style-light) .monitor-panel :deep(.border-gray-200),
-:global(.public-style-light) .monitor-panel :deep(.dark\:border-dark-700),
-:global(.public-style-light) .monitor-panel :deep(.dark\:border-dark-800) {
-  border-color: rgba(8, 123, 47, 0.24);
+:global(.public-style-light .monitor-panel .bg-gray-50),
+:global(.public-style-light .monitor-panel .dark\:bg-dark-900),
+:global(.public-style-light .monitor-panel .dark\:bg-dark-900\/60){
+  background: #e4f3e9;
+}
+
+:global(.public-style-light .monitor-panel .border-gray-100),
+:global(.public-style-light .monitor-panel .border-gray-200),
+:global(.public-style-light .monitor-panel .dark\:border-dark-700),
+:global(.public-style-light .monitor-panel .dark\:border-dark-800){
+  border-color: rgba(8, 91, 38, 0.24);
+}
+
+:global(.public-style-light .page-hero h1){
+  color: #0f172a;
+}
+
+:global(.public-style-light .hero-copy),
+:global(.public-style-light .hero-stats span),
+:global(.public-style-light .state-box){
+  color: #475569;
+}
+
+:global(.public-style-light .hero-stats article),
+:global(.public-style-light .monitor-toolbar),
+:global(.public-style-light .monitor-panel){
+  border-color: rgba(37, 99, 235, 0.16);
+  background: linear-gradient(180deg, #ffffff 0%, #f8fafc 100%);
+  box-shadow:
+    0 18px 60px rgba(15, 23, 42, 0.1),
+    inset 0 1px rgba(255, 255, 255, 0.9);
+}
+
+:global(.public-style-light .hero-stats strong),
+:global(.public-style-light .state-box strong){
+  color: #0f172a;
+}
+
+:global(.public-style-light .hero-stats strong.operational),
+:global(.public-style-light .refresh-button){
+  color: #1d4ed8;
+}
+
+:global(.public-style-light .segmented){
+  border-color: rgba(37, 99, 235, 0.18);
+  background: rgba(255, 255, 255, 0.8);
+}
+
+:global(.public-style-light .segmented button){
+  color: #334155;
+}
+
+:global(.public-style-light .segmented button.active){
+  background: linear-gradient(180deg, #3b82f6, #1d4ed8);
+  color: #fff;
+  box-shadow: 0 8px 20px rgba(37, 99, 235, 0.18);
+}
+
+:global(.public-style-light .status-chip.operational){
+  border-color: rgba(37, 99, 235, 0.2);
+  background: #eff6ff;
+  color: #1d4ed8;
+}
+
+:global(.public-style-light .refresh-button){
+  border-color: rgba(37, 99, 235, 0.22);
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.98), rgba(239, 246, 255, 0.86));
+  box-shadow: 0 10px 26px rgba(37, 99, 235, 0.1);
+}
+
+:global(.public-style-light .monitor-panel .text-gray-900),
+:global(.public-style-light .monitor-panel .text-gray-800),
+:global(.public-style-light .monitor-panel .dark\:text-white),
+:global(.public-style-light .monitor-panel .dark\:text-gray-100),
+:global(.public-style-light .monitor-panel .font-semibold),
+:global(.public-style-light .monitor-panel .font-bold){
+  color: #0f172a !important;
+}
+
+:global(.public-style-light .monitor-panel .text-gray-700),
+:global(.public-style-light .monitor-panel .text-gray-600),
+:global(.public-style-light .monitor-panel .text-gray-500),
+:global(.public-style-light .monitor-panel .text-gray-400),
+:global(.public-style-light .monitor-panel .dark\:text-gray-300),
+:global(.public-style-light .monitor-panel .dark\:text-gray-400),
+:global(.public-style-light .monitor-panel .dark\:text-dark-300),
+:global(.public-style-light .monitor-panel .dark\:text-dark-400){
+  color: #475569 !important;
+}
+
+:global(.public-style-light .monitor-panel button){
+  color: #0f172a !important;
+}
+
+:global(.public-style-light .monitor-panel .bg-gray-100),
+:global(.public-style-light .monitor-panel .dark\:bg-dark-700),
+:global(.public-style-light .monitor-panel .dark\:bg-dark-700\/60){
+  background: #e2e8f0;
+}
+
+:global(.public-style-light .monitor-panel .bg-gray-50),
+:global(.public-style-light .monitor-panel .dark\:bg-dark-900),
+:global(.public-style-light .monitor-panel .dark\:bg-dark-900\/60){
+  background: #eef2f7;
+}
+
+:global(.public-style-light .monitor-panel .border-gray-200\/80),
+:global(.public-style-light .monitor-panel .dark\:border-dark-700\/70),
+:global(.public-style-light .monitor-panel .border-gray-100),
+:global(.public-style-light .monitor-panel .border-gray-200),
+:global(.public-style-light .monitor-panel .dark\:border-dark-700),
+:global(.public-style-light .monitor-panel .dark\:border-dark-800){
+  border-color: rgba(37, 99, 235, 0.14);
 }
 
 @keyframes spin {

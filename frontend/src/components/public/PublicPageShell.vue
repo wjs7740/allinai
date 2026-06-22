@@ -3,9 +3,6 @@
     <nav class="top-nav">
       <div class="nav-inner">
         <RouterLink to="/home" class="brand">
-          <span class="brand-mark">
-            <span>{{ brandInitial }}</span>
-          </span>
           <span>{{ siteName }}</span>
         </RouterLink>
 
@@ -54,6 +51,7 @@
         <RouterLink to="/ranking">{{ t('nav.ranking') }}</RouterLink>
         <RouterLink to="/monitor">{{ t('nav.monitor') }}</RouterLink>
         <RouterLink to="/key-usage">{{ t('nav.keyUsage') }}</RouterLink>
+        <RouterLink to="/help">{{ t('nav.help') }}</RouterLink>
       </div>
     </footer>
   </div>
@@ -80,7 +78,6 @@ const STYLE_STORAGE_KEY = 'allcancode_public_style'
 
 const siteName = computed(() => appStore.cachedPublicSettings?.site_name || appStore.siteName || 'AllCanCode')
 const subtitle = computed(() => appStore.cachedPublicSettings?.site_subtitle || 'One key for OpenAI, Claude, and Gemini')
-const brandInitial = computed(() => 'AC')
 const actionPath = computed(() => (authStore.isAuthenticated ? (authStore.isAdmin ? '/admin/dashboard' : '/dashboard') : '/login'))
 const actionLabel = computed(() => (authStore.isAuthenticated ? t('home.dashboard') : t('auth.signIn')))
 const styleMode = ref<'dark' | 'light'>(readStyleMode())
@@ -91,6 +88,7 @@ const navItems = computed(() => [
   { label: t('nav.ranking'), to: '/ranking' },
   { label: t('nav.monitor'), to: '/monitor' },
   { label: t('nav.keyUsage'), to: '/key-usage' },
+  { label: t('nav.help'), to: '/help' },
 ])
 
 function readStyleMode(): 'dark' | 'light' {
@@ -211,23 +209,6 @@ onMounted(() => {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-}
-
-.brand-mark {
-  display: inline-flex;
-  width: 42px;
-  height: 42px;
-  flex: 0 0 auto;
-  align-items: center;
-  justify-content: center;
-  overflow: hidden;
-  border: 1px solid rgba(46, 195, 83, 0.65);
-  border-radius: 8px;
-  background: linear-gradient(135deg, #0ad840, #1f95ac);
-  color: #001a06;
-  font-size: 20px;
-  font-weight: 950;
-  box-shadow: 0 0 24px rgba(7, 184, 50, 0.2);
 }
 
 .nav-tabs {
@@ -367,83 +348,95 @@ onMounted(() => {
 }
 
 .public-style-light {
-  background: #f7f7f4;
-  color: #101412;
+  background: #f8fafc;
+  color: #0f172a;
 }
 
 .public-style-light .announcement,
 .public-style-light .top-nav {
-  border-bottom-color: rgba(8, 123, 47, 0.18);
+  border-bottom-color: rgba(37, 99, 235, 0.16);
   background:
-    linear-gradient(180deg, rgba(255, 255, 255, 0.92), rgba(239, 250, 241, 0.9)),
-    rgba(247, 247, 244, 0.96);
-  box-shadow: 0 1px 0 rgba(15, 127, 120, 0.08);
+    linear-gradient(180deg, rgba(255, 255, 255, 0.94), rgba(248, 250, 252, 0.9)),
+    rgba(248, 250, 252, 0.96);
+  box-shadow: 0 1px 0 rgba(37, 99, 235, 0.08);
 }
 
 .public-style-light .announcement-text,
 .public-style-light .announcement-arrow {
-  color: rgba(6, 58, 22, 0.78);
+  color: rgba(30, 41, 59, 0.74);
 }
 
 .public-style-light .brand,
 .public-style-light .public-footer strong {
-  color: #101412;
-}
-
-.public-style-light .brand-mark {
-  border-color: rgba(8, 123, 47, 0.38);
-  background: linear-gradient(135deg, #0fbf4a 0%, #58c7b1 58%, #f2c45a 100%);
-  box-shadow:
-    0 12px 30px rgba(8, 123, 47, 0.16),
-    inset 0 1px rgba(255, 255, 255, 0.55);
+  color: #0f172a;
 }
 
 .public-style-light .nav-tab {
-  border-color: rgba(8, 123, 47, 0.1);
-  background: rgba(255, 255, 255, 0.34);
-  color: rgba(6, 58, 22, 0.68);
+  border-color: rgba(37, 99, 235, 0.1);
+  background: rgba(255, 255, 255, 0.58);
+  color: rgba(51, 65, 85, 0.82);
 }
 
 .public-style-light .nav-tab:hover,
 .public-style-light .nav-tab.active {
-  border-color: rgba(8, 123, 47, 0.42);
-  background: linear-gradient(180deg, rgba(232, 248, 236, 0.98), rgba(211, 241, 221, 0.82));
-  color: #063a16;
-  box-shadow: 0 10px 24px rgba(8, 123, 47, 0.12);
+  border-color: rgba(37, 99, 235, 0.36);
+  background: linear-gradient(180deg, rgba(239, 246, 255, 0.98), rgba(219, 234, 254, 0.86));
+  color: #1d4ed8;
+  box-shadow: 0 10px 24px rgba(37, 99, 235, 0.12);
 }
 
 .public-style-light .style-toggle,
 .public-style-light .login-btn {
-  border-color: rgba(8, 123, 47, 0.32);
-  background: linear-gradient(180deg, rgba(255, 255, 255, 0.98), rgba(232, 248, 236, 0.84));
-  color: #063a16;
-  box-shadow: 0 8px 24px rgba(8, 123, 47, 0.1);
+  border-color: rgba(37, 99, 235, 0.28);
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.98), rgba(239, 246, 255, 0.88));
+  color: #1d4ed8;
+  box-shadow: 0 8px 24px rgba(37, 99, 235, 0.1);
 }
 
 .public-style-light .style-toggle:hover,
 .public-style-light .login-btn:hover {
-  border-color: rgba(15, 127, 120, 0.5);
-  background: linear-gradient(180deg, #fff, rgba(230, 247, 244, 0.92));
-  box-shadow: 0 12px 28px rgba(15, 127, 120, 0.12);
+  border-color: rgba(14, 165, 233, 0.5);
+  background: linear-gradient(180deg, #fff, rgba(239, 246, 255, 0.94));
+  box-shadow: 0 12px 28px rgba(14, 165, 233, 0.12);
 }
 
 .public-style-light .public-main {
+  color: #0f172a;
   background:
-    radial-gradient(circle at 50% 0%, rgba(7, 184, 50, 0.12), transparent 24%),
-    radial-gradient(circle at 12% 40%, rgba(31, 149, 172, 0.1), transparent 24%),
-    linear-gradient(180deg, #f3f7ef 0%, #e5f1e7 58%, #f4f7ef 100%);
+    radial-gradient(circle at 50% 0%, rgba(37, 99, 235, 0.12), transparent 24%),
+    radial-gradient(circle at 12% 40%, rgba(14, 165, 233, 0.1), transparent 24%),
+    linear-gradient(180deg, #f8fafc 0%, #edf2f8 58%, #f8fafc 100%);
+}
+
+.public-style-light .public-main :deep(h1),
+.public-style-light .public-main :deep(h2),
+.public-style-light .public-main :deep(h3),
+.public-style-light .public-main :deep(strong) {
+  color: #0f172a;
+  -webkit-text-fill-color: currentColor;
+}
+
+.public-style-light .public-main :deep(p),
+.public-style-light .public-main :deep(small),
+.public-style-light .public-main :deep(td),
+.public-style-light .public-main :deep(th),
+.public-style-light .public-main :deep(.hero-copy),
+.public-style-light .public-main :deep(.panel-foot),
+.public-style-light .public-main :deep(.state-box),
+.public-style-light .public-main :deep(.compact-state) {
+  color: #475569;
 }
 
 .public-style-light .public-main::before {
   opacity: 0.09;
-  background-image: repeating-linear-gradient(90deg, transparent 0, transparent 3px, rgba(6, 58, 22, 0.18) 4px);
+  background-image: repeating-linear-gradient(90deg, transparent 0, transparent 3px, rgba(15, 23, 42, 0.14) 4px);
   mix-blend-mode: multiply;
 }
 
 .public-style-light .public-footer {
-  border-top-color: rgba(8, 123, 47, 0.18);
-  background: linear-gradient(180deg, rgba(255, 255, 255, 0.36), rgba(232, 248, 236, 0.42));
-  color: rgba(6, 58, 22, 0.58);
+  border-top-color: rgba(37, 99, 235, 0.16);
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.42), rgba(239, 246, 255, 0.42));
+  color: rgba(51, 65, 85, 0.68);
 }
 
 @media (max-width: 900px) {
@@ -455,11 +448,6 @@ onMounted(() => {
 
   .brand {
     font-size: 22px;
-  }
-
-  .brand-mark {
-    width: 36px;
-    height: 36px;
   }
 
   .nav-tabs {
